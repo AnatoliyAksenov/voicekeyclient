@@ -5,7 +5,7 @@ let http = require('http');
 let fs = require('fs');
 let session = require('express-session');
 let cookieParser = require('cookie-parser');
-let redis = require("connect-redis")(session);
+//let redis = require("connect-redis")(session);
 
 let debug = require('./utils/index');
 
@@ -19,7 +19,7 @@ app.use(require('body-parser').urlencoded({ extended: true }));
 
 
 let sessionMiddleware = session({
-    store: new redis({}),
+    //store: new redis({}),
     saveUninitialized: true,
     resave: true,
     secret: "RosEuroBnak programmers been here.",
@@ -64,12 +64,14 @@ app.post('/api/internal_number', (req, res) => {
 	
 	let internal_number = req.body.internal_number;
 	debug('  req.body.internal_number == ' + req.body.internal_number);
+	debug('  req.body == ' + JSON.stringify(req.body));
 	
 	if(req.session){
 		debug('  session is ok');
 		req.session.user_data = {internal_number: internal_number};
 		res.send('OK');
 	} else {
+		debug(' session is failed:\n'+ JSON.stringify(req.session))
 		res.sendStatus(404);
 	}
 });
@@ -82,7 +84,7 @@ app.get('/api/call', (req,res) => {
 	
 	if(registred_numbers[id]){
 		debug('  caller_id registred');
-		registred_numbers[id].emit('call', req.query);
+		registred_numbers[id].socket.emit('call', req.query);
 		res.send('OK');
 	} else {
 		debug('  caller_id not registred');
@@ -105,18 +107,23 @@ io.use((socket, next) => {
 
 io.on('connection', (socket) => {
 	
+	
+	//TODO: do this automatically
 	socket.on('listenner:add', (data) => {
 		debug('socket: listenner:add');
 		debug('  data == ' + data);
-		registred_numbers[data] = socket;
+		registred_numbers[data].socket = socket;
+		//socket.request.session
 		socket.emit('listenner:add:response', 'OK');
 	});
 	
+	//TODO: and this too
 	socket.on('listenner:rm', (data) => {
 		debug('socket: listenner:add');
 		debug('  data == ' + data);
 		delete registred_numbers[data];
 		socket.emit('listenner:rm:response', 'OK');
 	});
+	
 });
 

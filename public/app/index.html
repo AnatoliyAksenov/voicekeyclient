@@ -25,9 +25,15 @@
 
 <header class="navbar">
 	<div class="container-fluid expanded-panel">
-		<div class="row">
-			<div id="logo" class="col-xs-12 col-sm-2">
+		<div class="row  display-table">
+			<div id="logo" class="col-xs-12 col-md-10 col-lg-10 display-cell">
 				<a href="/">REB</a>
+			</div>
+			<div class="col-xs-12 col-md-1 col-lg-1 display-cell">
+				<span>{{ status }}</span>	
+			</div>
+			<div class="col-xs-12 col-md-1 col-lg-1 display-cell">
+				<input type="button" class="btn btn-default" value="Set number" data-toggle="modal" data-target="#setnumber" />
 			</div>
 		</div>
 	</div>
@@ -61,6 +67,7 @@
 		<!--End Content-->
 	</div>
 </div>
+<dialogs></dialogs>
 <!--End Container-->
 <script src="/socket.io/socket.io.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
@@ -72,6 +79,7 @@
 <script src="/js/socket.js"></script>
 <script src="/js/MainController.js"></script>
 <script src="/js/listitem.js"></script>
+<script src="/js/dialogs.js"></script>
 
 
 </body>

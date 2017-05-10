@@ -115,6 +115,17 @@
         overflow: hidden;
       }
       
+      .display-table{
+          display: table;
+          table-layout: fixed;
+      }
+      
+      .display-cell{
+          display: table-cell;
+          vertical-align: middle;
+          float: none;
+      }
+      
       @media (min-width: 992px) {
         .nav.main-menu > li > a, .nav.msg-menu > li > a {
           text-align: left;
