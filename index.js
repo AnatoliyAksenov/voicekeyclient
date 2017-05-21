@@ -7,6 +7,9 @@ let session = require('express-session');
 let cookieParser = require('cookie-parser');
 //let redis = require("connect-redis")(session);
 
+let restful = require('sequelize-restful');
+let database = require(__dirname + '/model/index.js');
+
 let debug = require('./utils/index');
 
 // Create a new Express application.
@@ -16,7 +19,6 @@ let port = process.env.port || 8080;
 
 app.use(cookieParser());
 app.use(require('body-parser').urlencoded({ extended: true }));
-
 
 let sessionMiddleware = session({
     //store: new redis({}),
@@ -35,6 +37,35 @@ app.use('/', express.static('public/app'));
 
 //Global variables
 let registred_numbers = [];
+
+//app.use(restful(database.sequelize));
+//app.use(restful(sequelize));
+//DB API
+app.all(/\/dbapi\/(\w+)\/?(\w+)?\/?/, function(req, res){
+	if(req.method == 'GET'){
+		if(req.params[0] && database[req.params[0]]){
+			let model = req.params[0];
+			let query = req.params[1];
+			if(query){
+				let param = req.query[query]; //single parameter sends as a part of query where key is function name and parameter is value
+				let options = req.query['options']? JSON.parse(req.query['options']): undefined;
+				
+				database[model][query](param || options).then(result => {
+					res.json(result);
+				});
+			} else {
+				database[model].findAll().then(result => {
+					res.json(result);
+				});	
+			}
+		} else {
+			
+		}
+	} else {
+		res.sendStatus(404);
+	}
+});
+
 
 //API
 //Speech history
@@ -64,6 +95,7 @@ app.post('/api/internal_number', (req, res) => {
 	
 	let internal_number = req.body.internal_number;
 	debug('  req.body.internal_number == ' + req.body.internal_number);
+	debug('  req.headers == ' + JSON.stringify(req.headers));
 	debug('  req.body == ' + JSON.stringify(req.body));
 	
 	if(req.session){
@@ -106,7 +138,6 @@ io.use((socket, next) => {
 });
 
 io.on('connection', (socket) => {
-	
 	
 	//TODO: do this automatically
 	socket.on('listenner:add', (data) => {

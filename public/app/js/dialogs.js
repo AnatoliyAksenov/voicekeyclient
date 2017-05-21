@@ -24,11 +24,18 @@
     
     $scope.setInternalNumber = function(){
 			console.log('setInternalNumber');
+			
 			dataAssistant.post('/api/internal_number', {internal_number: $scope.internalnumber}).then(function(data){
 				console.log('internal_number: ' + $scope.internalnumber + ' ' +data.data);
 			}, function(error){
 				console.log('internal_number: ' + JSON.stringify(error));
 			});
+			
+			/*
+			$.post('/api/internal_number', {internal_number: $scope.internalnumber},function(data){
+			  console.log(data);
+			})*/
+			
 		}
 		
 

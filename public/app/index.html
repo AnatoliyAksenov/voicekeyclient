@@ -21,7 +21,7 @@
 		<![endif]-->
 		
 	</head>
-<body  ng-app="App" ng-controller="MainController" ng-init="loadhists()">
+<body  ng-app="App" ng-controller="MainController" ng-init="init()">
 
 <header class="navbar">
 	<div class="container-fluid expanded-panel">
@@ -30,7 +30,7 @@
 				<a href="/">REB</a>
 			</div>
 			<div class="col-xs-12 col-md-1 col-lg-1 display-cell">
-				<span>{{ status }}</span>	
+				<span  ng-bind="status.message"></span>	
 			</div>
 			<div class="col-xs-12 col-md-1 col-lg-1 display-cell">
 				<input type="button" class="btn btn-default" value="Set number" data-toggle="modal" data-target="#setnumber" />
