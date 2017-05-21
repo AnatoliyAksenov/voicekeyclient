@@ -11,6 +11,7 @@ let cookieParser = require('cookie-parser');
 let database = require(__dirname + '/model/index.js');
 
 let debug = require('./utils/index');
+let vk = require('./utils/voicekey.js');
 
 // Create a new Express application.
 var app = express();
@@ -40,6 +41,40 @@ let registred_numbers = [];
 
 //app.use(restful(database.sequelize));
 //app.use(restful(sequelize));
+
+//Check session status
+app.all('*', function (req, res, next) {
+  //init user_data variable
+  if(req.session)
+    if(!req.session.user_data)
+		req.session.user_data = {};
+  debug("session="req.session);
+  debug("sessionID="req.sessionID);
+  next(); // pass control to the next handler
+});
+
+//VoiceKEY API
+vk.init();
+app.all(/\/vkapi\/(\w+)\/?(\w+)?/, function(req, res){    
+	if(req.method == 'GET'){
+		let func = req.params[0];
+		let param = req.params[1];
+		let options = req.query['options']? JSON.parse(req.query['options']): undefined;
+		
+		vk[func](param, options, req.session)
+		.then( data => {
+			res.send(data);
+		})
+		.fail( err => {
+			res.send(err);
+		});
+	} else if(req.method == 'POST'){
+		res.send('POST');
+	} else {
+		res.send(req.method);
+	}
+});
+
 //DB API
 app.all(/\/dbapi\/(\w+)\/?(\w+)?\/?/, function(req, res){
 	if(req.method == 'GET'){
@@ -65,7 +100,6 @@ app.all(/\/dbapi\/(\w+)\/?(\w+)?\/?/, function(req, res){
 		res.sendStatus(404);
 	}
 });
-
 
 //API
 //Speech history
