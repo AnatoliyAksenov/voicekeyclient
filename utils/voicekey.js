@@ -38,6 +38,19 @@ let create_session = function(){
 }
 vk.create_session = create_session;
 
+let get_session_id = function(){
+	var deferred = q.defer();
+	
+	if(vk.session){
+		deferred.resolve(vk.session);	
+	} else {
+		deferred.reject( new Error('VoiceKey x-session-id undefined') );
+	}
+	
+	return deferred.promise;
+}
+vk.get_session_id = get_session_id;
+
 let check_session = function(){
 	var deferred = q.defer();
 	
