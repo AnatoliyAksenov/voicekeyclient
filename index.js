@@ -7,7 +7,7 @@ let session = require('express-session');
 let cookieParser = require('cookie-parser');
 //let redis = require("connect-redis")(session);
 
-let restful = require('sequelize-restful');
+//let restful = require('sequelize-restful');
 let database = require(__dirname + '/model/index.js');
 
 let debug = require('./utils/index');
