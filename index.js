@@ -45,11 +45,13 @@ let registred_numbers = [];
 //Check session status
 app.all('*', function (req, res, next) {
   //init user_data variable
-  if(req.session)
-    if(!req.session.user_data)
+  if(req.session) {
+    if(!req.session.user_data) {
 		req.session.user_data = {};
-  debug("session="req.session);
-  debug("sessionID="req.sessionID);
+    }
+  }
+  debug("session=" + req.session);
+  debug("sessionID=" + req.sessionID);
   next(); // pass control to the next handler
 });
 
