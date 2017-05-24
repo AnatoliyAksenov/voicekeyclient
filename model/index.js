@@ -83,6 +83,9 @@ sequelize
       model_info:      { type: Sequelize.STRING }
     });
     
+    SpeecherModel.sync();
+    database.speechermodel = SpeecherModel;
+    
   })
   .catch(err => {
     console.error('Unable to connect to the database:', err);
