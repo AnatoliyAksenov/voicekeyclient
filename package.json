@@ -4,7 +4,7 @@
   "description": "Client for VoiceKeyAgent + Genesys",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "c9": "PRIVATE_KEY_FILE=/home/ubuntu/server.key CERTIFICATE_FILE=/home/ubuntu/server.crt HTTPS_PORT=8080 node index"
   },
   "keywords": [
     "VoiceKeyAgent",
@@ -23,6 +23,7 @@
     "request": "^2.81.0",
     "sequelize": "^3.30.4",
     "socket.io": "^1.7.4",
-    "sqlite3": "^3.1.8"
+    "sqlite3": "^3.1.8",
+    "web-push": "^3.2.2"
   }
 }

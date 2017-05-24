@@ -1,11 +1,20 @@
 'use strict';
 
 let express = require('express');
-let http = require('http');
+let https = require('https');
+
 let fs = require('fs');
 let session = require('express-session');
 let cookieParser = require('cookie-parser');
 //let redis = require("connect-redis")(session);
+
+var privateKeyFile = process.env.PRIVATE_KEY_FILE || '/etc/ssl/private/ssl.key';
+var certificateFile = process.env.CERTIFICATE_FILE || '/etc/ssl/certs/ssl.cert';
+var privateKey  = fs.readFileSync(privateKeyFile, 'utf8');
+var certificate = fs.readFileSync(certificateFile, 'utf8');
+
+var credentials = {key: privateKey, cert: certificate};
+
 
 //let restful = require('sequelize-restful');
 let database = require(__dirname + '/model/index.js');
@@ -13,10 +22,24 @@ let database = require(__dirname + '/model/index.js');
 let debug = require('./utils/index');
 let vk = require('./utils/voicekey.js');
 
+//PUSH Notification
+const webpush = require('web-push');
+
+// VAPID keys should only be generated only once.
+const vapidKeys = webpush.generateVAPIDKeys();
+
+webpush.setGCMAPIKey(process.env.GOOGLE_SERVER_KEY);
+webpush.setVapidDetails(
+  'mailto:a.aksenov@roseurobank.ru',
+  'BPs8iWzHvo6i-bLRyr57pohjunO4EKOdQ8fYNOWKgkOPH_ZVAlZRQvWW7NMUFXFGCYMWRUdqT232X0dKIfA6P2E',
+  process.env.PRIVATE_APP_KEY
+);
+
 // Create a new Express application.
 var app = express();
 
 let port = process.env.port || 8080;
+let https_port = process.env.HTTPS_PORT || 443;
 
 app.use(cookieParser());
 app.use(require('body-parser').urlencoded({ extended: true }));
@@ -27,20 +50,16 @@ let sessionMiddleware = session({
     resave: true,
     secret: "RosEuroBnak programmers been here.",
     name: 'session',
-    keys: ['kkkey  1','iejdkj3 2'],
+    keys: ['rumba pumba pum pum pum  1','dijid jsie ejdkj3 2'],
     // Cookie Options
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
 });
 
 app.use(sessionMiddleware);
-
 app.use('/', express.static('public/app'));
 
 //Global variables
 let registred_numbers = [];
-
-//app.use(restful(database.sequelize));
-//app.use(restful(sequelize));
 
 //Check session status
 app.all('*', function (req, res, next) {
@@ -55,16 +74,36 @@ app.all('*', function (req, res, next) {
   next(); // pass control to the next handler
 });
 
+app.get('/pushapi/send', function(req, res){
+	debug('/pushapi/send');
+	debug('  req.query = ' + JSON.stringify(req.query));
+	let text = req.query['text'];
+	let subscription = JSON.parse(req.query['subscription']);
+	if(text && subscription){
+		webpush.sendNotification(subscription, text);
+		res.send('OK');
+	} else {
+		res.sendStatus(400);
+	}
+	
+});
+
 //VoiceKEY API
 vk.init();
 app.all(/\/vkapi\/(\w+)\/?(\w+)?/, function(req, res){    
+	debug('/vkapi/');
 	if(req.method == 'GET'){
+		debug('  req.params=' + JSON.stringify(req.params));
+		
 		let func = req.params[0];
 		let param = req.params[1];
+		
+		debug('  req.query=' + JSON.stringify(req.query));
 		let options = req.query['options']? JSON.parse(req.query['options']): undefined;
 		
 		vk[func](param, options, req.session)
 		.then( data => {
+			debug('  data=' + JSON.stringify(data));
 			res.send(data);
 		})
 		.fail( err => {
@@ -79,12 +118,17 @@ app.all(/\/vkapi\/(\w+)\/?(\w+)?/, function(req, res){
 
 //DB API
 app.all(/\/dbapi\/(\w+)\/?(\w+)?\/?/, function(req, res){
+	debug('/dbapi/');
 	if(req.method == 'GET'){
 		if(req.params[0] && database[req.params[0]]){
+			debug('  req.params=' + JSON.stringify(req.params));
+			
 			let model = req.params[0];
 			let query = req.params[1];
 			if(query){
-				let param = req.query[query]; //single parameter sends as a part of query where key is function name and parameter is value
+				debug('  req.query=' + JSON.stringify(req.query));
+			
+				let param = req.query[query];  //single parameter sends as a part of query where key is function name and parameter is value
 				let options = req.query['options']? JSON.parse(req.query['options']): undefined;
 				
 				database[model][query](param || options).then(result => {
@@ -96,10 +140,10 @@ app.all(/\/dbapi\/(\w+)\/?(\w+)?\/?/, function(req, res){
 				});	
 			}
 		} else {
-			
+			res.sendStatus(400);
 		}
 	} else {
-		res.sendStatus(404);
+		res.sendStatus(400);
 	}
 });
 
@@ -160,14 +204,14 @@ app.get('/api/call', (req,res) => {
 	}
 });
 
-let httpServer = http.createServer(app);
-httpServer.listen(port, () => {
-  console.log('HTTP server listening on port:' + port);
-  debug('Debug enabled.')
+let httpsServer = https.createServer(credentials, app);
+httpsServer.listen(https_port, function(){
+	console.log('HTTPS server listening on port ' + https_port );
+    debug('Debug enabled.');
 });
 
 // WebSocket server
-var io = require('socket.io')(httpServer);
+var io = require('socket.io')(httpsServer);
 
 io.use((socket, next) => {
     sessionMiddleware(socket.request, socket.request.res, next);
@@ -193,4 +237,3 @@ io.on('connection', (socket) => {
 	});
 	
 });
-
