@@ -4,7 +4,8 @@
   "description": "Client for VoiceKeyAgent + Genesys",
   "main": "index.js",
   "scripts": {
-    "c9": "PRIVATE_KEY_FILE=/home/ubuntu/server.key CERTIFICATE_FILE=/home/ubuntu/server.crt HTTPS_PORT=8080 node index"
+    "c9": "PRIVATE_KEY_FILE=/home/ubuntu/server.key CERTIFICATE_FILE=/home/ubuntu/server.crt HTTPS_PORT=8080 node index",
+	"win": "set PRIVATE_KEY_FILE=c:/ssl/server.key&set CERTIFICATE_FILE=c:/ssl/server.crt& set HTTPS_PORT=443& node index"
   },
   "keywords": [
     "VoiceKeyAgent",
