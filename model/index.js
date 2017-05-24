@@ -15,75 +15,73 @@ sequelize
   .authenticate()
   .then(() => {
       let Person = sequelize.define('person', {
-      firstName: {
-        type: Sequelize.STRING
-      },
-      lastName: {
-        type: Sequelize.STRING
-      },
-      personId: {
-        type: Sequelize.INTEGER,
-        unique: 'IDX_PERSON_PERSON_ID'
-      },
-      phoneNumber: {
-        type: Sequelize.STRING
-      },
-      url: {
-        type: Sequelize.STRING
-      }
+      shortName: { type: Sequelize.STRING },
+      fullName:  { type: Sequelize.STRING  },
+      person_id: { type: Sequelize.INTEGER, unique: 'IDX_PERSON_PERSON_ID' },
+      rscode:    { type: Sequelize.INTEGER },
+      inn:       { type: Sequelize.INTEGER },
+      phoneNumber: { type: Sequelize.STRING },
+      url:         { type: Sequelize.STRING },
+      email:       { type: Sequelize.STRING }
     });
     
-    //recreate
-    Person.sync({force: true})
-    .then(() => {
-      return Person.create({
-        firstName: 'Anatoliy',
-        lastName: 'Aksenov',
-        personId: 6007,
-        phoneNumber: 6007,
-        url: "http://portal.main.roseurobank.ru/user/6007"
-      });
-    })
-    .then(()=>{
-      return Person.create({
-        firstName: 'Boris',
-        lastName: 'Gurevich',
-        personId: 1122,
-        phoneNumber: 6666,
-        url: "http://portal.main.roseurobank.ru/user/1122"
-      });
-    });
+    Person.sync();
     database.person = Person;
     
+    let Speecher = sequelize.define('speecher', {
+      shortName: { type: Sequelize.STRING },
+      fullName:  { type: Sequelize.STRING },
+      person_id: { type: Sequelize.INTEGER },
+      user_id:   { type: Sequelize.INTEGER },
+      role:      { type: Sequelize.STRING },
+      phone_number:  { type: Sequelize.STRING },
+      mobile_number: { type: Sequelize.STRING },
+      email:         { type: Sequelize.STRING }
+    });
+    
+    Speecher.sync();
+    database.speecher = Speecher;
+    
     let Speech = sequelize.define('speech', {
-      speecherId1: { type: Sequelize.INTEGER },
-      speecherId2: { type: Sequelize.INTEGER },
+      speecher_id_1:  { type: Sequelize.INTEGER },
+      phone_number_1: { type: Sequelize.STRING },
+      speecher_id_2:  { type: Sequelize.INTEGER },
+      phone_number_2: { type: Sequelize.STRING },
+      caller_id:      { type: Sequelize.STRING },
+      begin_dt:       { type: Sequelize.DATE },
+      end_dt:         { type: Sequelize.DATE },
       speechText: { type: Sequelize.TEXT }
     });
     
-    Speech.sync({force: true})
-    .then(() => {
-      return Speech.create({
-        speecherId1: 1,
-        speecherId2: 2,
-        speechText: `<speech startTime="01.01.2017">
-            <specheerId1 timestamp="01.01.2017 01:01:01">Happy New Year Boris!</speecherId1>
-            <specheerId2 timestamp="01.01.2017 01:01:05">Happy New Year Anatoliy!</speecherId1>
-          </speech>`
-      });
-    })
-    .then(() => {
-      return Speech.create({
-        speecherId1: 2,
-        speecherId2: 1,
-        speechText: `<speech startTime="01.01.2017">
-            <specheerId1 timestamp="01.01.2017 01:01:01">Happy New Year Boris!</speecherId1>
-            <specheerId2 timestamp="01.01.2017 01:01:05">Happy New Year Anatoliy!</speecherId1>
-          </speech>`
-      });
+    Speech.sync();
+    database.speech = Speech;
+    
+    let PushSubscription = sequelize.define('pushsubscription', {
+      speecher_id: { type: Sequelize.INTEGER },
+      user_id:     { type: Sequelize.INTEGER },
+      ext:         { type: Sequelize.INTEGER },
+      endpoint:    { type: Sequelize.TEXT },
+      p256dh:      { type: Sequelize.STRING },
+      auth:        { type: Sequelize.STRING }
     });
     
-    database.speech = Speech;
+    PushSubscription.sync();
+    database.pushsubscription = PushSubscription;
+    
+    let SocketSubscription = sequelize.define('socketsubscription', {
+      speecher_id: { type: Sequelize.INTEGER },
+      user_id:     { type: Sequelize.INTEGER },
+      ext:         { type: Sequelize.INTEGER }
+    });
+    
+    SocketSubscription.sync({force: true});
+    database.socketsubscription = SocketSubscription;
+    
+    let SpeecherModel = sequelize.define('speechermodel', {
+      speecher_id:     { type: Sequelize.INTEGER },
+      voicekey_person: { type: Sequelize.STRING },
+      model_info:      { type: Sequelize.STRING }
+    });
     
   })
   .catch(err => {

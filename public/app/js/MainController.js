@@ -17,7 +17,7 @@
 		
 			$scope.socket = socketUtils.socket;
 			
-			$scope.socket.on('connect',function(){
+			$scope.socket.on('connect', function(){
 				$scope.status = {message: 'connect'};
 				$scope.$digest();
 				console.log('connect');
