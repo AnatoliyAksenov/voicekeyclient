@@ -1,6 +1,7 @@
 'use strict';
 
 let express = require('express');
+let http  = require('http');
 let https = require('https');
 
 let fs = require('fs');
@@ -8,13 +9,18 @@ let session = require('express-session');
 let cookieParser = require('cookie-parser');
 //let redis = require("connect-redis")(session);
 
-var privateKeyFile = process.env.PRIVATE_KEY_FILE || '/etc/ssl/private/ssl.key';
-var certificateFile = process.env.CERTIFICATE_FILE || '/etc/ssl/certs/ssl.cert';
-var privateKey  = fs.readFileSync(privateKeyFile, 'utf8');
-var certificate = fs.readFileSync(certificateFile, 'utf8');
+let ENABLE_HTTPS = process.env.ENABLE_HTTPS || 0;
 
-var credentials = {key: privateKey, cert: certificate};
-
+let privateKeyFile, certificateFile, privateKey, certificate, credentials;
+	
+if (ENABLE_HTTPS == 1){
+	privateKeyFile = process.env.PRIVATE_KEY_FILE || '/etc/ssl/private/ssl.key';
+	certificateFile = process.env.CERTIFICATE_FILE || '/etc/ssl/certs/ssl.cert';
+	privateKey  = fs.readFileSync(privateKeyFile, 'utf8');
+	certificate = fs.readFileSync(certificateFile, 'utf8');
+	
+	credentials = {key: privateKey, cert: certificate};
+}
 
 //let restful = require('sequelize-restful');
 let database = require(__dirname + '/model/index.js');
@@ -28,7 +34,11 @@ const webpush = require('web-push');
 // VAPID keys should only be generated only once.
 const vapidKeys = webpush.generateVAPIDKeys();
 
-webpush.setGCMAPIKey(process.env.GOOGLE_SERVER_KEY);
+if(process.env.GOOGLE_SERVER_KEY){
+	debug('Set firebase google server key web_push');
+	webpush.setGCMAPIKey(process.env.GOOGLE_SERVER_KEY);
+}
+
 webpush.setVapidDetails(
   'mailto:a.aksenov@roseurobank.ru',
   'BPs8iWzHvo6i-bLRyr57pohjunO4EKOdQ8fYNOWKgkOPH_ZVAlZRQvWW7NMUFXFGCYMWRUdqT232X0dKIfA6P2E',
@@ -69,7 +79,7 @@ app.all('*', function (req, res, next) {
 		req.session.user_data = {};
     }
   }
-  debug("session=" + req.session);
+  debug("session=" + JSON.stringify(req.session));
   debug("sessionID=" + req.sessionID);
   next(); // pass control to the next handler
 });
@@ -148,17 +158,6 @@ app.all(/\/dbapi\/(\w+)\/?(\w+)?\/?/, function(req, res){
 });
 
 //API
-//Speech history
-app.get('/api/hists', (req, res) => {
-	debug('get /api/hists');
-	if(fs.existsSync(__dirname + '/hists.json')){
-		var hists = require(__dirname + '/hists.json');
-		res.json( hists );
-	} else {
-		res.sendStatus(404);
-	}
-});
-
 //Internal phone number
 app.get('/api/internal_number', (req, res) => {
 	debug('get /api/internal_number\n' + JSON.stringify(req.session));
@@ -204,14 +203,24 @@ app.get('/api/call', (req,res) => {
 	}
 });
 
-let httpsServer = https.createServer(credentials, app);
-httpsServer.listen(https_port, function(){
-	console.log('HTTPS server listening on port ' + https_port );
-    debug('Debug enabled.');
-});
+let server = {};
+
+if(ENABLE_HTTPS == 1){
+	server = https.createServer(credentials, app);
+	server.listen(https_port, function(){
+		console.log('HTTPS server listening on port ' + https_port );
+	    debug('Debug enabled.');
+	});
+} else {
+	server = http.createServer(app);
+	server.listen(port, function(){
+		console.log('HTTP server listening on port ' + https_port );
+	    debug('Debug enabled.');
+	});
+}
 
 // WebSocket server
-var io = require('socket.io')(httpsServer);
+var io = require('socket.io')(server);
 
 io.use((socket, next) => {
     sessionMiddleware(socket.request, socket.request.res, next);
