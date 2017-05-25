@@ -44,7 +44,7 @@
 <div id="main" class="container-fluid">
 	<div class="row">
 		<div id="sidebar-left" class="col-xs-2 col-sm-2">
-			<ul class="nav main-menu" ng-repeat="hist in hists">
+			<ul class="nav main-menu">
 				<li>
 					<a href="#" ng-model="profile" ng-click="showPersonList()">
 						<i class="fa fa-user"></i>
@@ -55,6 +55,18 @@
 					<a href="#" ng-model="profile" ng-click="showCallsList()">
 						<i class="fa fa-phone"></i>
 						<span class="hidden-xs">Звонки</span>
+					</a>
+				</li>
+				<li>
+					<a href="#" ng-model="profile" ng-click="showOperatorsList()">
+						<i class="fa fa-users"></i>
+						<span class="hidden-xs">Операторы</span>
+					</a>
+				</li>
+				<li>
+					<a href="#" ng-model="profile" ng-click="showServerInfo()">
+						<i class="fa fa-cogs"></i>
+						<span class="hidden-xs">Информация</span>
 					</a>
 				</li>
 			</ul>

@@ -1,3 +1,4 @@
 node_modules
 hists\.json
 *sqlite
+*.log
