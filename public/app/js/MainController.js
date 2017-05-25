@@ -8,12 +8,11 @@
     MainController.inject = ['$scope', 'dataAssistant', 'socketUtils'];
 
     function MainController($scope, dataAssistant, socketUtils) {
+    	$scope.page = 'person';
 		$scope.hists = {};
 		$scope.status = {message: 'disconneted'};
 		
 		$scope.init = function(){
-			
-			$scope.loadhists();
 		
 			$scope.socket = socketUtils.socket;
 			
@@ -41,20 +40,14 @@
 			});
 		};
 		
-		$scope.loadhists = function(){
-			dataAssistant.get('/api/hists').then(function(data){
-				$scope.hists = data.data;
-				console.log('hist loaded.');
-			}, function(error){
-				$scope.hists = {};
-			});
-		};		
-      
-		$scope.showAdd = function(){
-			$scope.page = 'add';
-			
+		$scope.showPersonList = function(){
+			$scope.page = 'person';
 		};
-
+		
+		$scope.showCallsList = function(){
+			$scope.page = 'speech';
+		};
+		
 						
     }
 })();

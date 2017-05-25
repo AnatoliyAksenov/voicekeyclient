@@ -3,8 +3,8 @@
 		  }
 
       #logo {
-        position:relative;
-        background:#505559;
+        position: relative;
+        background: #505559;
       }
       
       #logo a {
@@ -21,7 +21,7 @@
       }
       
       .nav.main-menu, .nav.msg-menu {
-        margin:0 -15px;
+        margin: 0 -15px;
       }
       
       .nav.main-menu > li > a, .nav.msg-menu > li > a {
@@ -81,20 +81,20 @@
         padding: 0;
         background: #6AA6D6;
         box-shadow: none;
-        visibility:hidden;
+        visibility: hidden;
       }
       
       .main-menu .active-parent:hover + .dropdown-menu {
-        visibility:visible;
+        visibility: visible;
       }
       
       .main-menu .active-parent + .dropdown-menu:hover {
-        visibility:visible;
+        visibility: visible;
       }
       
       .main-menu .dropdown-menu > li > a {
-        padding:9px 15px 9px 40px;
-        color:#f0f0f0;
+        padding: 9px 15px 9px 40px;
+        color: #f0f0f0;
       }
       
       .main-menu .dropdown-menu > li:first-child > a {
