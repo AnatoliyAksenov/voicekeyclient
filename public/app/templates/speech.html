@@ -1,6 +1,28 @@
-<li>
-	<a href="#" ng-model="profile" ng-click="showHist()">
-		<i class="fa fa-user"></i>
-		<span class="hidden-xs">{{ item.person_id }} &nbsp; {{ item.internal_number }}</span>
-	</a>
-</li>
+<div>
+	<table class="table table-bordred table-striped">
+	    <thead>
+	        <tr>
+				<th>speecher_id_1</th> 
+				<th>phone_number_1</th>
+				<th>speecher_id_2</th> 
+				<th>phone_number_2</th>
+				<th>caller_id</th>     
+				<th>begin_dt</th>      
+				<th>end_dt</th>        
+				<th>speechText</th>
+			</tr>
+	    </thead>
+	    <tbody>
+            <tr ng-repeat="speech in speeches">
+				<th>{{ speech.speecher_id_1 }}</th> 
+				<th>{{ speech.phone_number_1 }}</th>
+				<th>{{ speech.speecher_id_2 }}</th> 
+				<th>{{ speech.phone_number_2 }}</th>
+				<th>{{ speech.caller_id }}</th>     
+				<th>{{ speech.begin_dt }}</th>      
+				<th>{{ speech.end_dt }}</th>        
+				<th>{{ speech.speechText }}</th>
+            </tr>
+	    </tbody>        
+	</table>
+</div>

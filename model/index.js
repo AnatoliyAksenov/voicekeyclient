@@ -50,7 +50,7 @@ sequelize
       caller_id:      { type: Sequelize.STRING },
       begin_dt:       { type: Sequelize.DATE },
       end_dt:         { type: Sequelize.DATE },
-      speechText: { type: Sequelize.TEXT }
+      speechText:     { type: Sequelize.TEXT }
     });
     
     Speech.sync();

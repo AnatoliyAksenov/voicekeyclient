@@ -12,7 +12,7 @@
 		<link href='//fonts.googleapis.com/css?family=Righteous' rel='stylesheet' type='text/css' />
 		<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" rel="stylesheet" />
     
-		<link rel="stylesheet" href="/src/main.css" type='text/css' />		
+		<link rel="stylesheet" href="/src/main.css" type='text/css' />
     
 		<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
 		<!--[if lt IE 9]>
@@ -25,7 +25,7 @@
 
 <header class="navbar">
 	<div class="container-fluid expanded-panel">
-		<div class="row  display-table">
+		<div class="row display-table">
 			<div id="logo" class="col-xs-12 col-md-10 col-lg-10 display-cell">
 				<a href="/">REB</a>
 			</div>
@@ -39,12 +39,12 @@
 	</div>
 </header>
 <!--End Header-->
-
+<div class="clearfix"></div>
 <!--Start Container-->
 <div id="main" class="container-fluid">
 	<div class="row">
 		<div id="sidebar-left" class="col-xs-2 col-sm-2">
-			<ul class="nav main-menu" ng-repeat="hist in hists">
+			<ul class="nav main-menu">
 				<li>
 					<a href="#" ng-model="profile" ng-click="showPersonList()">
 						<i class="fa fa-user"></i>
@@ -57,14 +57,27 @@
 						<span class="hidden-xs">Звонки</span>
 					</a>
 				</li>
+				<li>
+					<a href="#" ng-model="profile" ng-click="showOperatorsList()">
+						<i class="fa fa-users"></i>
+						<span class="hidden-xs">Операторы</span>
+					</a>
+				</li>
+				<li>
+					<a href="#" ng-model="profile" ng-click="showServerInfo()">
+						<i class="fa fa-cogs"></i>
+						<span class="hidden-xs">Информация</span>
+					</a>
+				</li>
 			</ul>
 		</div>
 		<!--Start Content-->
 		<div id="content" class="col-xs-10 col-sm-8" >
 			<div class="alert-container"></div>
 			<div ng-switch="page">
-				<serverinfo ng-switch-when="serverinfo"></serverinfo>
+				<person ng-switch-when="person"></person>
 				<speech ng-switch-when="speech"></speech>
+				<serverinfo ng-switch-when="serverinfo"></serverinfo>
 				
 				
 				<div ng-switch-default >
@@ -91,6 +104,7 @@
 <script src="/js/MainController.js"></script>
 <script src="/js/listitem.js"></script>
 <script src="/js/dialogs.js"></script>
+<script src="/js/person.js"></script>
 <script src="/js/main.js"></script>
 
 

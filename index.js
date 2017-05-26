@@ -29,22 +29,22 @@ let debug = require('./utils/index');
 let vk = require('./utils/voicekey.js');
 
 //PUSH Notification
-const webpush = require('web-push');
-
-// VAPID keys should only be generated only once.
-const vapidKeys = webpush.generateVAPIDKeys();
+const webpush = {}
 
 if(process.env.GOOGLE_SERVER_KEY){
+	// VAPID keys should only be generated only once.
+	const vapidKeys = webpush.generateVAPIDKeys();
+
+	webpush = require('web-push');
 	debug('Set firebase google server key web_push');
 	webpush.setGCMAPIKey(process.env.GOOGLE_SERVER_KEY);
+
+	webpush.setVapidDetails(
+	  'mailto:a.aksenov@roseurobank.ru',
+	  'BPs8iWzHvo6i-bLRyr57pohjunO4EKOdQ8fYNOWKgkOPH_ZVAlZRQvWW7NMUFXFGCYMWRUdqT232X0dKIfA6P2E',
+	  process.env.PRIVATE_APP_KEY
+	);
 }
-
-webpush.setVapidDetails(
-  'mailto:a.aksenov@roseurobank.ru',
-  'BPs8iWzHvo6i-bLRyr57pohjunO4EKOdQ8fYNOWKgkOPH_ZVAlZRQvWW7NMUFXFGCYMWRUdqT232X0dKIfA6P2E',
-  process.env.PRIVATE_APP_KEY
-);
-
 // Create a new Express application.
 var app = express();
 
@@ -85,15 +85,22 @@ app.all('*', function (req, res, next) {
 });
 
 app.get('/pushapi/send', function(req, res){
-	debug('/pushapi/send');
-	debug('  req.query = ' + JSON.stringify(req.query));
-	let text = req.query['text'];
-	let subscription = JSON.parse(req.query['subscription']);
-	if(text && subscription){
-		webpush.sendNotification(subscription, text);
-		res.send('OK');
+	if(Object.keys(webpush).length) {
+		debug('/pushapi/send');
+		debug('  req.query = ' + JSON.stringify(req.query));
+		let text = req.query['text'];
+		let subscription = JSON.parse(req.query['subscription']);
+		if(text && subscription){
+			webpush.sendNotification(subscription, text);
+			res.send('OK');
+		} else {
+			res.sendStatus(400);
+		}
 	} else {
-		res.sendStatus(400);
+		debug('/pushapi/send');
+		debug(' pushapi disabled');
+		
+		res.send(400);
 	}
 	
 });
