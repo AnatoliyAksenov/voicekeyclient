@@ -210,10 +210,18 @@ app.get('/api/call', (req, res) => {
 	}
 });
 
-app.get(/\/sioapi\/(\w+)\?/, (req, res) => {
-	debug('get /sioapi/');
-	
-	res.send('OK');
+// WebSocket api
+app.get('/wsapi/:event', (req, res) => {
+	debug('get /wsapi/');
+	debug('  req.params=' + JSON.stringify(req.params));
+	let event = req.params.event;
+	let caller_id = req.query.caller_id;
+	let data = req.query.data;
+	if( event && caller_id && data){
+		registred_numbers[caller_id].socket.emit(event, data);
+	} else {
+		res.sendStatus(400);	
+	}
 });
 
 let server = {};

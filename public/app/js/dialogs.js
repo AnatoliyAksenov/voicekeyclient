@@ -23,11 +23,15 @@
   function Dialogs($scope, dataAssistant){
     $scope.call = {};
     
-    $('#incomingcall').on('show.bs.modal', function (e) {
-      //if (!data) return e.preventDefault() // stops modal from being shown
-      console.log('incomingcall show '+ JSON.stringify($scope.$parent.call));
-      $scope.call = $scope.$parent.call;
-    });
+    $scope.init = function(){
+      console.log('init dialogs');
+      $('#incomingcall').on('show', function (e) {
+        //if (!data) return e.preventDefault() // stops modal from being shown
+        console.log('incomingcall show '+ JSON.stringify($scope.$parent.call));
+        $scope.call = $scope.$parent.call;
+      });
+
+    };
     
     $scope.setInternalNumber = function(){
 			console.log('setInternalNumber');
