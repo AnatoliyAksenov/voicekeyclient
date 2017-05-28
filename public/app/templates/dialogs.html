@@ -1,3 +1,4 @@
+<!-- Set Internal number -->
 <div class="modal fade" id="setnumber" tabindex="-1" role="dialog" aria-labelledby="setnumber" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -15,6 +16,36 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="setInternalNumber()">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Incoming call -->
+<div class="modal fade" id="incomingcall" tabindex="-1" role="dialog" aria-labelledby="incomingcall" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">Входящий звонок</h4>
+      </div>
+      <div class="modal-body">
+          <div class="form-group">
+            <label for="phonenumber">Входящий номер</label>
+            <input type="text" class="form-control" id="phonenumber" placeholder="Номер не определен" ng-model="call.phonenumber">
+          </div>
+          <div class="form-group">
+            <label for="callinfo">Информация</label>
+            <input type="text" class="form-control" id="callinfo" placeholder="Информация" ng-model="call.info">
+          </div>
+          <div class="form-group">
+            <pre>{{ call | json }}</pre>
+          </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
       </div>
     </div>
   </div>

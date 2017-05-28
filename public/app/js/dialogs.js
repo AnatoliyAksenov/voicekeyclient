@@ -21,6 +21,12 @@
   Dialogs.$inject = ['$scope', 'dataAssistant'];
 
   function Dialogs($scope, dataAssistant){
+    $scope.call = {};
+    
+    $('#incomingcall').on('show.bs.modal', function (e) {
+      //if (!data) return e.preventDefault() // stops modal from being shown
+      $scope.call = $scope.$parent.call;
+    });
     
     $scope.setInternalNumber = function(){
 			console.log('setInternalNumber');
@@ -38,7 +44,6 @@
 			
 		}
 		
-
   }
 
 })();	

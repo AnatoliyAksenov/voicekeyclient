@@ -202,11 +202,11 @@ app.get('/api/call', (req,res) => {
 	
 	if(registred_numbers[id]){
 		debug('  caller_id registred');
-		registred_numbers[id].socket.emit('call', req.query);
+		registred_numbers[id].socket.emit('incomingcall', req.query);
 		res.send('OK');
 	} else {
 		debug('  caller_id not registred');
-		res.sendStatus(404);
+		res.sendStatus(400);
 	}
 });
 
@@ -233,19 +233,20 @@ io.use((socket, next) => {
     sessionMiddleware(socket.request, socket.request.res, next);
 });
 
-io.on('connection', (socket) => {
+io.on('connection', socket => {
 	
 	//TODO: do this automatically
 	socket.on('listenner:add', (data) => {
 		debug('socket: listenner:add');
 		debug('  data == ' + data);
+		registred_numbers[data] = {};
 		registred_numbers[data].socket = socket;
 		//socket.request.session
 		socket.emit('listenner:add:response', 'OK');
 	});
 	
 	//TODO: and this too
-	socket.on('listenner:rm', (data) => {
+	socket.on('listenner:rm', data => {
 		debug('socket: listenner:add');
 		debug('  data == ' + data);
 		delete registred_numbers[data];
