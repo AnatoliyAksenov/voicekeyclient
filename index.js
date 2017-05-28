@@ -194,7 +194,7 @@ app.post('/api/internal_number', (req, res) => {
 	}
 });
 
-app.get('/api/call', (req,res) => {
+app.get('/api/call', (req, res) => {
 	debug('get /api/call');
 	
 	let id = req.query.caller_id;
@@ -208,6 +208,12 @@ app.get('/api/call', (req,res) => {
 		debug('  caller_id not registred');
 		res.sendStatus(400);
 	}
+});
+
+app.get(/\/sioapi\/(\w+)\?/, (req, res) => {
+	debug('get /sioapi/');
+	
+	res.send('OK');
 });
 
 let server = {};

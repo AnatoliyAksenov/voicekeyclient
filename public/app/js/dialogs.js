@@ -25,6 +25,7 @@
     
     $('#incomingcall').on('show.bs.modal', function (e) {
       //if (!data) return e.preventDefault() // stops modal from being shown
+      console.log('incomingcall show '+ JSON.stringify($scope.$parent.call));
       $scope.call = $scope.$parent.call;
     });
     

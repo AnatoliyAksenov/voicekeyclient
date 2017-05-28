@@ -43,7 +43,7 @@
 				console.log('incomingcall');
 				$scope.call = data;
 				$scope.$apply();
-				$('incomingcall').modal();
+				$('#incomingcall').modal('show');
 			});
 		};
 		
