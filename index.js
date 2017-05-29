@@ -29,14 +29,16 @@ let debug = require('./utils/index');
 let vk = require('./utils/voicekey.js');
 
 //PUSH Notification
-const webpush = {}
+let webpush = {}
 
 if(process.env.GOOGLE_SERVER_KEY){
+	webpush = require('web-push');
+	debug('Set firebase google server key web_push');
+	
+	
 	// VAPID keys should only be generated only once.
 	const vapidKeys = webpush.generateVAPIDKeys();
 
-	webpush = require('web-push');
-	debug('Set firebase google server key web_push');
 	webpush.setGCMAPIKey(process.env.GOOGLE_SERVER_KEY);
 
 	webpush.setVapidDetails(
