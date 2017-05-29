@@ -221,6 +221,7 @@ app.get('/wsapi/:event', (req, res) => {
 	let data = req.query.data;
 	if( event && caller_id && data){
 		registred_numbers[caller_id].socket.emit(event, data);
+		res.send('OK');	
 	} else {
 		res.sendStatus(400);	
 	}

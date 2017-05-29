@@ -9,7 +9,7 @@
 
     function MainController($scope, dataAssistant, socketUtils) {
     	$scope.page = 'person';
-		$scope.hists = {};
+		$scope.call = { hello: "World!" };
 		$scope.status = {message: 'disconneted'};
 		
 		$scope.init = function(){
@@ -42,7 +42,7 @@
 			$scope.socket.on('incomingcall', function(data){
 				console.log('incomingcall');
 				$scope.call = data;
-				$scope.$apply();
+				$scope.$degest();
 				//$('#incomingcall').modal('show');
 			});
 		};

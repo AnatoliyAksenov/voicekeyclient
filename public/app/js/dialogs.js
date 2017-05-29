@@ -11,7 +11,8 @@
       scope:{
       },
       templateUrl: '/templates/dialogs.html',
-      controller: Dialogs
+      controller: Dialogs,
+      link: Link
     };
 
     return directive;
@@ -48,7 +49,22 @@
 			})*/
 			
 		}
-		
+  }
+
+  Link.$inject = ['$scope', '$element'];
+
+  function Link($scope, $element){
+    //$element.text('test');
+    $element.on('show.bs.modal', function(e){
+      $scope.call = $scope.$parent.call;
+      $scope.$digest();
+      console.log('modal show fired');
+    });
+
+    $scope.$parent.socket.on('newcall', data => {
+      console.log(JSON.stringify(data));
+    });
+
   }
 
 })();	
