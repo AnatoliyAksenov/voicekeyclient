@@ -38,6 +38,13 @@
 				$scope.status = {message: 'reconnect_error'};
 				$scope.$apply();
 			});
+			
+			$scope.socket.on('incomingcall', function(data){
+				console.log('incomingcall');
+				$scope.call = data;
+				$scope.$apply();
+				//$('#incomingcall').modal('show');
+			});
 		};
 		
 		$scope.showPersonList = function(){
