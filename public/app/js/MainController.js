@@ -5,12 +5,12 @@
     .module('App')
     .controller('MainController', MainController);
 
-    MainController.inject = ['$scope', 'dataAssistant', 'socketUtils'];
+    MainController.inject = ['$scope', 'dataAssistant', 'socketUtils', '$timeout'];
 
-    function MainController($scope, dataAssistant, socketUtils) {
+    function MainController($scope, dataAssistant, socketUtils, $timeout) {
     	$scope.page = 'person';
 		$scope.call = { hello: "World!" };
-		$scope.status = {message: 'disconneted'};
+		$scope.status = {message: 'disconnected'};
 		
 		$scope.init = function(){
 		
@@ -19,19 +19,47 @@
 			$scope.socket.on('connect', function(){
 				$scope.status = {message: 'connect'};
 				$scope.$digest();
-				console.log('connect');
+
+				this.on('incomingcall', function(data){
+
+					$scope.call = data;
+					$scope.$digest();
+					$('#incomingcall').modal('show');
+				});
+				
+				this.on('listenner:add:response', data => {
+					if(data){
+						if(data == 'OK'){
+							console.log('Internal number initialized.');
+						} else {
+							console.log(JSON.stringify(data));
+						}
+					}
+				});
+
+			});
+			
+			$scope.socket.on('disconnected', function(){
+				$scope.status = { message: 'disconnected'};
+				$scope.$digest();
+				
+				this.off('incomingcall');
+				this.off('listenner:add:response');
 			});
 			
 			$scope.socket.on('ping', function(data){
-				$scope.status = {message: 'ping'};
+				$scope.status = { message: 'ping' };
 				$scope.$digest();
-				console.log('ping');
 			});
 			
 			$scope.socket.on('pong', function(data){
-				$scope.status = {message: 'pong'};
+				$scope.status = { message: 'pong' };
 				$scope.$digest();
-				console.log('pong');
+				
+				//change label to coonect with timeout
+				$timeout( () => {
+					$scope.status = { message: 'connect' };
+				}, 500);
 			});
 			
 			$scope.socket.on('reconnect_error', function(data){
@@ -39,12 +67,7 @@
 				$scope.$apply();
 			});
 			
-			$scope.socket.on('incomingcall', function(data){
-				console.log('incomingcall');
-				$scope.call = data;
-				$scope.$degest();
-				//$('#incomingcall').modal('show');
-			});
+			
 		};
 		
 		$scope.showPersonList = function(){

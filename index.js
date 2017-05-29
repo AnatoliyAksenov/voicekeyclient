@@ -252,7 +252,6 @@ io.use((socket, next) => {
 
 io.on('connection', socket => {
 	
-	//TODO: do this automatically
 	socket.on('listenner:add', (data) => {
 		debug('socket: listenner:add');
 		debug('  data == ' + data);
@@ -262,12 +261,20 @@ io.on('connection', socket => {
 		socket.emit('listenner:add:response', 'OK');
 	});
 	
-	//TODO: and this too
 	socket.on('listenner:rm', data => {
 		debug('socket: listenner:add');
 		debug('  data == ' + data);
 		delete registred_numbers[data];
 		socket.emit('listenner:rm:response', 'OK');
 	});
+	
+	socket.on('disconnected', () =>{
+		if(socket.request.session){
+			if(socket.request.session.user_data.internal_number){
+				debug('socket: disconnected');
+				delete registred_numbers[socket.request.session.user_data.internal_number];
+			}
+		}
+	})
 	
 });
