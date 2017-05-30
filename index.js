@@ -7,6 +7,7 @@ let https = require('https');
 let fs = require('fs');
 let session = require('express-session');
 let cookieParser = require('cookie-parser');
+let multipart = require('connect-multiparty');
 //let redis = require("connect-redis")(session);
 
 let ENABLE_HTTPS = process.env.ENABLE_HTTPS || 0;
@@ -212,6 +213,21 @@ app.get('/api/call', (req, res) => {
 	}
 });
 
+
+let multipartMiddleware = multipart();
+app.post('/api/media', multipartMiddleware, (req, res) => {
+	debug('post /api/media');
+	if(req.body && req.files){
+		debug('  req.body == ' + JSON.stringify(req.body));
+		debug('  req.files == ' + JSON.stringify(req.files));
+		debug('  req.files.file == ' + fs.readFileSync(req.files.file.path));
+		
+		res.send('OK');
+	} else {
+		res.sendStatus(400);
+	}
+});
+
 // WebSocket api
 app.get('/wsapi/:event', (req, res) => {
 	debug('get /wsapi/');
@@ -266,6 +282,21 @@ io.on('connection', socket => {
 		debug('  data == ' + data);
 		delete registred_numbers[data];
 		socket.emit('listenner:rm:response', 'OK');
+	});
+	
+	socket.on('modelling', data => {
+		debug('socket: modelling');
+		debug('  data == ' + data);
+		let personId = socket.request.session.user_data.personId;
+		let options = {};
+	
+		vk.model_info(personId, options, socket.request.session)
+		.then(data => {
+			socket.emit('modelling_result', data);
+		})
+		.fail(err => {
+			socket.emit('server_error', err);
+		});
 	});
 	
 	socket.on('disconnected', () =>{
