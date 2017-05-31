@@ -7,6 +7,7 @@ let https = require('https');
 let fs = require('fs');
 let session = require('express-session');
 let cookieParser = require('cookie-parser');
+let multipart = require('connect-multiparty');
 //let redis = require("connect-redis")(session);
 
 let ENABLE_HTTPS = process.env.ENABLE_HTTPS || 0;
@@ -212,6 +213,14 @@ app.get('/api/call', (req, res) => {
 	}
 });
 
+
+var multipartMiddleware = multipart();
+app.all('/api/media', multipartMiddleware, (req, res) => {
+	debug('/api/media');
+	fs.writeFileSync(__dirname + "tmp/temp.json", req.body);
+	res.send("OK");
+});
+
 // WebSocket api
 app.get('/wsapi/:event', (req, res) => {
 	debug('get /wsapi/');
@@ -227,6 +236,7 @@ app.get('/wsapi/:event', (req, res) => {
 	}
 });
 
+//WEB Server
 let server = {};
 
 if(ENABLE_HTTPS == 1){
