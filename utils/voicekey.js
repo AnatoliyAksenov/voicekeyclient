@@ -224,7 +224,7 @@ let create_model = function(personId, options, session){
 	let opt = {
 		method: 'POST',
 		uri: vk.options.endpoint + `person/${personId}/model`,
-		headers: {"X-Session-Id": vk.session},
+		headers: { "X-Session-Id": vk.session },
 		body: { 
 			"extension": 6007,
 			"call_id": 1,
@@ -251,5 +251,87 @@ let create_model = function(personId, options, session){
 	return deferred.promise;	
 }
 vk.create_model = create_model;
+
+let training_model = function(personId, options, session){
+	var deferred = q.defer();
+	
+	if(!vk.options){
+	    deferred.reject( new Error('VoiceKey module not initialized.'));
+		return deferred.promise;
+	}	
+	
+	if(!vk.session){
+	    deferred.reject( new Error('Header x-session-id undefined'));
+		return deferred.promise;
+	}
+	
+	if(!session && !session.user_data && !session.user_data.transaction){
+	    deferred.reject( new Error('Header x-transaction-id undefined'));
+		return deferred.promise;
+	}
+		
+	let opt = {
+		method: 'PUT',
+		uri: vk.options.endpoint + `person/${personId}/model`,
+		headers: {
+			"X-Session-Id": vk.session,
+			"X-Transaction-id": session.user_data.transaction
+		},
+		body: { 
+			"file": options.file 
+		},
+		json: true
+	};
+		
+	request(opt, function(err, res, body){
+	    if(!err){
+			deferred.resolve(body);
+		} else {
+			deferred.reject(err);
+		}
+	});	
+	
+	return deferred.promise;	
+}
+vk.training_model = training_model;
+
+let model_info = function(personId, options, session){
+	var deferred = q.defer();
+	
+	if(!vk.options){
+	    deferred.reject( new Error('VoiceKey module not initialized.'));
+		return deferred.promise;
+	}	
+	
+	if(!vk.session){
+	    deferred.reject( new Error('Header x-session-id undefined'));
+		return deferred.promise;
+	}
+	
+	if(!session && session.user_data.transaction){
+	    deferred.reject( new Error('Header x-transaction-id undefined'));
+		return deferred.promise;
+	}
+		
+	let opt = {
+		method: 'GET',
+		uri: vk.options.endpoint + `person/${personId}/model`,
+		headers: {
+			"X-Session-Id":     vk.session,
+			"X-Transaction-id": session.user_data.transaction
+		}
+	};
+		
+	request(opt, function(err, res, body){
+	    if(!err){
+			deferred.resolve(body);
+		} else {
+			deferred.reject(err);
+		}
+	});	
+	
+	return deferred.promise;	
+}
+vk.model_info = model_info;
 
 module.exports = vk;
