@@ -10,6 +10,8 @@ let cookieParser = require('cookie-parser');
 let multipart = require('connect-multiparty');
 //let redis = require("connect-redis")(session);
 
+let s = JSON.stringify;
+
 let ENABLE_HTTPS = process.env.ENABLE_HTTPS || 0;
 
 let privateKeyFile, certificateFile, privateKey, certificate, credentials;
@@ -82,7 +84,7 @@ app.all('*', function (req, res, next) {
 		req.session.user_data = {};
     }
   }
-  debug("session=" + JSON.stringify(req.session));
+  debug("session=" + s(req.session));
   debug("sessionID=" + req.sessionID);
   next(); // pass control to the next handler
 });
@@ -90,7 +92,7 @@ app.all('*', function (req, res, next) {
 app.get('/pushapi/send', function(req, res){
 	if(Object.keys(webpush).length) {
 		debug('/pushapi/send');
-		debug('  req.query = ' + JSON.stringify(req.query));
+		debug('  req.query = ' + s(req.query));
 		let text = req.query['text'];
 		let subscription = JSON.parse(req.query['subscription']);
 		if(text && subscription){
@@ -113,17 +115,17 @@ vk.init();
 app.all(/\/vkapi\/(\w+)\/?(\w+)?/, function(req, res){    
 	debug('/vkapi/');
 	if(req.method == 'GET'){
-		debug('  req.params=' + JSON.stringify(req.params));
+		debug('  req.params=' + s(req.params));
 		
 		let func = req.params[0];
 		let param = req.params[1];
 		
-		debug('  req.query=' + JSON.stringify(req.query));
+		debug('  req.query=' + s(req.query));
 		let options = req.query['options']? JSON.parse(req.query['options']): undefined;
 		
 		vk[func](param, options, req.session)
 		.then( data => {
-			debug('  data=' + JSON.stringify(data));
+			debug('  data=' + s(data));
 			res.send(data);
 		})
 		.fail( err => {
@@ -141,12 +143,12 @@ app.all(/\/dbapi\/(\w+)\/?(\w+)?\/?/, function(req, res){
 	debug('/dbapi/');
 	if(req.method == 'GET'){
 		if(req.params[0] && database[req.params[0]]){
-			debug('  req.params=' + JSON.stringify(req.params));
+			debug('  req.params=' + s(req.params));
 			
 			let model = req.params[0];
 			let query = req.params[1];
 			if(query){
-				debug('  req.query=' + JSON.stringify(req.query));
+				debug('  req.query=' + s(req.query));
 			
 				let param = req.query[query];  //single parameter sends as a part of query where key is function name and parameter is value
 				let options = req.query['options']? JSON.parse(req.query['options']): undefined;
@@ -170,7 +172,7 @@ app.all(/\/dbapi\/(\w+)\/?(\w+)?\/?/, function(req, res){
 //API
 //Internal phone number
 app.get('/api/internal_number', (req, res) => {
-	debug('get /api/internal_number\n' + JSON.stringify(req.session));
+	debug('get /api/internal_number\n' + s(req.session));
 	if(req.session && req.session.user_data){
 		debug('  req.session.user_data.internal_number == ' + req.session.user_data.internal_number);
 		res.send(req.session.user_data.internal_number);
@@ -184,15 +186,15 @@ app.post('/api/internal_number', (req, res) => {
 	
 	let internal_number = req.body.internal_number;
 	debug('  req.body.internal_number == ' + req.body.internal_number);
-	debug('  req.headers == ' + JSON.stringify(req.headers));
-	debug('  req.body == ' + JSON.stringify(req.body));
+	debug('  req.headers == ' + s(req.headers));
+	debug('  req.body == ' + s(req.body));
 	
 	if(req.session){
 		debug('  session is ok');
 		req.session.user_data = {internal_number: internal_number};
 		res.send('OK');
 	} else {
-		debug(' session is failed:\n'+ JSON.stringify(req.session))
+		debug(' session is failed:\n'+ s(req.session));
 		res.sendStatus(404);
 	}
 });
@@ -213,16 +215,42 @@ app.get('/api/call', (req, res) => {
 	}
 });
 
-
 let multipartMiddleware = multipart();
 app.post('/api/media', multipartMiddleware, (req, res) => {
 	debug('post /api/media');
 	if(req.body && req.files){
-		debug('  req.body == ' + JSON.stringify(req.body));
-		debug('  req.files == ' + JSON.stringify(req.files));
-		debug('  req.files.file == ' + fs.readFileSync(req.files.file.path));
 		
-		res.send('OK');
+		let fileContent = fs.readFileSync(req.files.file.path, 'binary');
+		let buff = new Buffer(fileContent, 'binary');
+		debug('  req.body == ' + s(req.body));
+		debug('  req.files == ' + s(req.files));
+		debug('  req.files.file == ' + buff.toString('base64').substr(0,500));
+		const personId = req.body.title;
+		const options = {
+			"extension": 6007,
+			"call_id": 1,
+			"reset_sound": true,
+			"audio_source": "SAMPLE",
+			"split_speakers": false
+		};
+		
+		const fileOptions = {
+			"file": buff.toString('base64').substr(0,3000)
+		};
+		
+		vk.create_model(personId, options, req.session)
+		.then( data => {
+			debug('  create_model.data = ' + s(data))
+			vk.training_model(personId, fileOptions, req.session).then( data => {
+				debug('  training_model.data = ' + s(data));
+				res.send('OK')
+			});
+		})
+		.fail( err => {
+			res.send(s(err));	
+		});
+		
+		
 	} else {
 		res.sendStatus(400);
 	}
@@ -231,7 +259,7 @@ app.post('/api/media', multipartMiddleware, (req, res) => {
 // WebSocket api
 app.get('/wsapi/:event', (req, res) => {
 	debug('get /wsapi/');
-	debug('  req.params=' + JSON.stringify(req.params));
+	debug('  req.params=' + s(req.params));
 	let event = req.params.event;
 	let caller_id = req.query.caller_id;
 	let data = req.query.data;
