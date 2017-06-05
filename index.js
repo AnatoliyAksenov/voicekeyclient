@@ -296,7 +296,7 @@ app.post('/api/test', multipartMiddleware, (req, res) => {
 		//SAMPLE mode
 		vk.init_test_model(personId, options, req.session)
 		.then( data => {
-			debug('  create_model.data = ' + s(data))
+			debug('  init_test_model.data = ' + s(data))
 			vk.test_model(personId, fileOptions, req.session)
 			.then( data => {
 				debug('  test_model.data = ' + s(data));
