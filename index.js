@@ -235,15 +235,30 @@ app.post('/api/media', multipartMiddleware, (req, res) => {
 		};
 		
 		const fileOptions = {
-			"file": buff.toString('base64').substr(0,3000)
+			"data": buff.toString('base64')
 		};
 		
+		//SAMPLE mode
 		vk.create_model(personId, options, req.session)
 		.then( data => {
 			debug('  create_model.data = ' + s(data))
-			vk.training_model(personId, fileOptions, req.session).then( data => {
+			vk.training_model(personId, fileOptions, req.session)
+			.then( data => {
 				debug('  training_model.data = ' + s(data));
-				res.send('OK')
+				vk.status_model(personId, {}, req.session)
+				.then( data => {
+					debug('  status_model.data = ' + s(data));
+					
+					vk.finishing_model(personId, {}, req.session)
+					.then( data => {
+						debug('  finishing_model:data = ' + s(data));
+						res.send('OK');	
+					})
+					.fail( err => {
+						debug(`  finishing_model:err = ${err.name}:${err.message}`);
+						res.send('FAIL');
+					});
+				});
 			});
 		})
 		.fail( err => {
@@ -253,6 +268,54 @@ app.post('/api/media', multipartMiddleware, (req, res) => {
 		
 	} else {
 		res.sendStatus(400);
+	}
+});
+
+app.post('/api/test', multipartMiddleware, (req, res) => {
+	debug('post /api/test');
+	if(req.body && req.files){
+		let fileContent = fs.readFileSync(req.files.file.path, 'binary');
+		let buff = new Buffer(fileContent, 'binary');
+		debug('  req.body == ' + s(req.body));
+		debug('  req.files == ' + s(req.files));
+		debug('  req.files.file == ' + buff.toString('base64').substr(0,500));
+		
+		const personId = req.body.title;
+		const options = {
+			"extension": 6007,
+			"call_id": 1,
+			"reset_sound": true,
+			"audio_source": "SAMPLE",
+			"split_speakers": false
+		};
+		
+		const fileOptions = {
+			"data": buff.toString('base64')
+		};
+		
+		//SAMPLE mode
+		vk.init_test_model(personId, options, req.session)
+		.then( data => {
+			debug('  create_model.data = ' + s(data))
+			vk.test_model(personId, fileOptions, req.session)
+			.then( data => {
+				debug('  test_model.data = ' + s(data));
+				
+				res.send('OK');
+				// vk.finishing_model(personId, {}, req.session)
+				// .then( data => {
+				// 	debug('  finishing_model:data = ' + s(data));
+				// 	res.send('OK');	
+				// })
+				// .fail( err => {
+				// 	debug(`  finishing_model:err = ${err.name}:${err.message}`);
+				// 	res.send('FAIL');
+				// });
+			});
+		})
+		.fail( err => {
+			res.send(err);	
+		});
 	}
 });
 
