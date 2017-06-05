@@ -501,7 +501,7 @@ let init_test_model = function(param, options, session){
 		
 	let opt = {
 		method: 'POST',
-		uri: vk.options.endpoint + `person/${personId}/model`,
+		uri: vk.options.endpoint + `person/${personId}/authenticaction`,
 		headers: { "X-Session-Id": vk.sessionid },
 		body: options,
 		json: true
