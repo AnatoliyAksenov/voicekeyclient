@@ -8,7 +8,8 @@ let fs = require('fs');
 let session = require('express-session');
 let cookieParser = require('cookie-parser');
 let multipart = require('connect-multiparty');
-//let redis = require("connect-redis")(session);
+
+let q = require('q');
 
 let s = JSON.stringify;
 
@@ -75,6 +76,18 @@ app.use('/', express.static('public/app'));
 
 //Global variables
 let registred_numbers = [];
+
+let emit = function(ext, event, data){
+	var deferred = q.defer();
+	if(registred_numbers[ext]){
+		registred_numbers[ext].socket.emit(event, data);
+		deferred.resolve('OK');		
+	} else {
+		deferred.reject(new Error('Extension not registred'));
+	}
+
+	return deferred.promise;
+}
 
 //Check session status
 app.all('*', function (req, res, next) {
@@ -205,14 +218,14 @@ app.get('/api/call', (req, res) => {
 	let id = req.query.caller_id;
 	debug('  req.query.caller_id == ' + req.query.caller_id);
 	
-	if(registred_numbers[id]){
-		debug('  caller_id registred');
-		registred_numbers[id].socket.emit('incomingcall', req.query);
+	emit(id, 'incomingcall', req.query)
+	.then( data => {
 		res.send('OK');
-	} else {
-		debug('  caller_id not registred');
+	})
+	.fail( err => {
 		res.sendStatus(400);
-	}
+	});
+
 });
 
 let multipartMiddleware = multipart();
@@ -222,7 +235,7 @@ app.all('/api/echo', multipartMiddleware, (req, res) => {
 	/api/echo:req.method = ${req.method }
 	/api/echo:connection.remoteAddress = ${req.connection.remoteAddress}
 	/api/echo:headers = ${s(req.headers)}
-	/api/echo:body = ${req.body}
+	/api/echo:body = ${s(req.body)}
 	/api/echo:file = ${s(req.files)}
 	`;
 
@@ -233,17 +246,21 @@ app.all('/api/echo', multipartMiddleware, (req, res) => {
 
 app.post('/api/media', multipartMiddleware, (req, res) => {
 	debug('post /api/media');
+
 	if(req.body && req.files){
 		
 		let fileContent = fs.readFileSync(req.files.file.path, 'binary');
 		let buff = new Buffer(fileContent, 'binary');
 		debug('  req.body == ' + s(req.body));
 		debug('  req.files == ' + s(req.files));
-		debug('  req.files.file == ' + buff.toString('base64').substr(0,500));
+		debug('  req.files.file == ' + buff.toString('base64').substr(0, 500));
 		const personId = req.body.title;
+		const extension = req.body.extension || 1234;
+		const call_id = req.body.call_id || 1;
+
 		const options = {
-			"extension": 6007,
-			"call_id": 1,
+			"extension": extension,
+			"call_id": call_id,
 			"reset_sound": true,
 			"audio_source": "SAMPLE",
 			"split_speakers": false
@@ -264,9 +281,14 @@ app.post('/api/media', multipartMiddleware, (req, res) => {
 				.then( data => {
 					debug('  status_model.data = ' + s(data));
 					
+					emit(extension, 'model_status', data);
+					
 					vk.finishing_model(personId, {}, req.session)
 					.then( data => {
 						debug('  finishing_model:data = ' + s(data));
+
+						emit(extension, 'model_complete', data);
+
 						res.send('OK');	
 					})
 					.fail( err => {
@@ -293,12 +315,15 @@ app.post('/api/test', multipartMiddleware, (req, res) => {
 		let buff = new Buffer(fileContent, 'binary');
 		debug('  req.body == ' + s(req.body));
 		debug('  req.files == ' + s(req.files));
-		debug('  req.files.file == ' + buff.toString('base64').substr(0,500));
+		debug('  req.files.file == ' + buff.toString('base64').substr(0, 500));
 		
 		const personId = req.body.title;
+		const extension = req.body.extension || 1234;
+		const call_id = req.body.call_id || 1;
+		
 		const options = {
-			"extension": 6007,
-			"call_id": 1,
+			"extension": extension,
+			"call_id": call_id,
 			"reset_sound": true,
 			"audio_source": "SAMPLE",
 			"split_speakers": false
@@ -311,13 +336,19 @@ app.post('/api/test', multipartMiddleware, (req, res) => {
 		//SAMPLE mode
 		vk.init_test_model(personId, options, req.session)
 		.then( data => {
-			debug('  init_test_model.data = ' + s(data))
+			debug('  init_test_model.data = ' + s(data));
+
+			emit(extension, 'init_test_model', data);
+
 			vk.test_model(personId, fileOptions, req.session)
 			.then( data => {
 				debug('  test_model.data = ' + s(data));
 				vk.get_test_model(personId, {}, req.session)
 				.then( data => {
 					debug('  get_test_model.data = ' + s(data));
+
+					emit(extension, 'test_model', data);
+
 					res.json(data);
 				});
 			});
@@ -355,7 +386,7 @@ if(ENABLE_HTTPS == 1){
 } else {
 	server = http.createServer(app);
 	server.listen(port, function(){
-		console.log('HTTP server listening on port ' + https_port );
+		console.log('HTTP server listening on port ' + port );
 	    debug('Debug enabled.');
 	});
 }
