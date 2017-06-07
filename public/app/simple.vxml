@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<vxml version="2.0" xmlns="http://www.w3.org/2001/vxml" xml:lang="en-US" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.w3.org/2001/vxml http://www.w3.org/TR/voicexml21/vxml.xsd" >
+        <var name="TransferPath"  expr="'UNDEFINED'"/>
+        <var name="FromPath"  expr="'OUTBOUND_QA_TEST'"/>
+        <var name="PassState" expr="0"/>
+        <var name="ResultMessage" expr="'Success'"/>
+       
+        <catch event="connection.disconnect.hangup">
+               <assign name="ResultMessage" expr="'Disconnect Detected.'"/>
+               <assign name="TransferPath" expr="'COMPLETED'"/>
+               <assign name="PassState" expr="1"/>
+               <exit namelist="TransferPath FromPath PassState ResultMessage"/>
+        </catch>
+       
+        <catch event="error">
+               <assign name="ResultMessage" expr="'An error has occured.'"/>
+                <assign name="TransferPath" expr="'COMPLETED'"/>
+               <assign name="PassState" expr="1"/>
+               <exit namelist="TransferPath FromPath PassState ResultMessage"/>
+        </catch>
+ 
+        <form>
+               <property name="bargein" value="false"/>
+               <record  name="е1" beep="true" maxtime="10s"
+                  finalsilence="2000ms" type="audio/x-wav">
+                  <prompt timeout="5s">
+                               Добрый день
+                  </prompt>
+                  <noinput>
+                        Ничего не слышно
+                  </noinput>
+                  <filled>
+                               <prompt>
+                                      Запись сделана
+                               </prompt>
+                               <submit expr="'http://localhost:8080/api/media'" enctype="multipart/form-data" namelist="e1" method="post"/>
+                  </filled>
+               </record>
+        </form>
+</vxml>

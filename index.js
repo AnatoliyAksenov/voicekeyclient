@@ -216,6 +216,21 @@ app.get('/api/call', (req, res) => {
 });
 
 let multipartMiddleware = multipart();
+
+app.all('/api/echo', multipartMiddleware, (req, res) => {
+	let echo = `
+	/api/echo:req.method = ${req.method }
+	/api/echo:connection.remoteAddress = ${req.connection.remoteAddress}
+	/api/echo:headers = ${s(req.headers)}
+	/api/echo:body = ${req.body}
+	/api/echo:file = ${s(req.files)}
+	`;
+
+	console.log(echo);
+
+	res.send(echo);
+});
+
 app.post('/api/media', multipartMiddleware, (req, res) => {
 	debug('post /api/media');
 	if(req.body && req.files){
@@ -300,17 +315,11 @@ app.post('/api/test', multipartMiddleware, (req, res) => {
 			vk.test_model(personId, fileOptions, req.session)
 			.then( data => {
 				debug('  test_model.data = ' + s(data));
-				
-				res.send('OK');
-				// vk.finishing_model(personId, {}, req.session)
-				// .then( data => {
-				// 	debug('  finishing_model:data = ' + s(data));
-				// 	res.send('OK');	
-				// })
-				// .fail( err => {
-				// 	debug(`  finishing_model:err = ${err.name}:${err.message}`);
-				// 	res.send('FAIL');
-				// });
+				vk.get_test_model(personId, {}, req.session)
+				.then( data => {
+					debug('  get_test_model.data = ' + s(data));
+					res.json(data);
+				});
 			});
 		})
 		.fail( err => {

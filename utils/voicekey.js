@@ -180,6 +180,7 @@ let get_persons = function(){
 }
 vk.get_persons = get_persons;
 
+//DO NOT USE
 let create_person = function(param, options, session){
 	var deferred = q.defer();
 	
@@ -500,8 +501,8 @@ let init_test_model = function(param, options, session){
 	}
 		
 	let opt = {
-		method: 'POST',
-		uri: vk.options.endpoint + `person/${personId}/authenticaction`,
+		method: 'POST',                                
+		uri: vk.options.endpoint + `person/${personId}/authentication`,
 		headers: { "X-Session-Id": vk.sessionid },
 		body: options,
 		json: true
@@ -585,7 +586,7 @@ let test_model = function(param, options, session){
 	    	debug('  body = ' + s(body));
 	    	debug('  res = ' + s(res));
 	    	
-	    	delete session.user_data.inittransaction;
+	    	//delete session.user_data.inittransaction;
 			
 			deferred.resolve(body);
 		} else {
@@ -597,5 +598,60 @@ let test_model = function(param, options, session){
 	return deferred.promise;	
 }
 vk.test_model = test_model;
+
+//SAMPLE mode
+let get_test_model = function(param, options, session){
+	debug('voicekey.js get_test_model');
+	var deferred = q.defer();
+	
+	let personId = param;
+	
+	if(!vk.options){
+		debug('  options = undefined');
+	    deferred.reject( new Error('VoiceKey module not initialized.'));
+		return deferred.promise;
+	}	
+	
+	if(!vk.sessionid){
+		debug('  session = undefined');
+	    deferred.reject( new Error('Header x-session-id undefined'));
+		return deferred.promise;
+	}
+	
+	if(!session && !session.user_data && !session.user_data.inittransaction){
+		debug('  transaction = undefined');
+	    deferred.reject( new Error('Header x-transaction-id undefined'));
+		return deferred.promise;
+	}
+		
+	let opt = {
+		method: 'GET',
+		uri: vk.options.endpoint + `person/${personId}/authentication`,
+		headers: {
+			"X-Session-Id": vk.sessionid,
+			"X-Transaction-id": session.user_data.inittransaction
+		}
+	};
+	
+	debug('  session = ' + s(session));
+		
+	request(opt, function(err, res, body){
+	    if(!err){
+	    	debug('  res.headers = ' + s(res.headers));
+	    	debug('  body = ' + s(body));
+	    	debug('  res = ' + s(res));
+	    	
+	    	//delete session.user_data.inittransaction;
+			
+			deferred.resolve(body);
+		} else {
+			debug('  err = ' + s(err));
+			deferred.reject(err);
+		}
+	});	
+	
+	return deferred.promise;	
+}
+vk.get_test_model = get_test_model;
 
 module.exports = vk;
