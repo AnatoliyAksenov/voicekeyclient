@@ -29,7 +29,8 @@ if (ENABLE_HTTPS == 1){
 //let restful = require('sequelize-restful');
 let database = require(__dirname + '/model/index.js');
 
-let debug = require('./utils/index');
+let debug = require('./utils/index').debug;
+let qreq = require('./utils/index').qreq;
 let vk = require('./utils/voicekey.js');
 
 //PUSH Notification
@@ -242,6 +243,22 @@ app.all('/api/echo', multipartMiddleware, (req, res) => {
 	console.log(echo);
 
 	res.send(echo);
+});
+
+app.get('/api/checkfile', (req, res) => {
+	debug('get /api/checkfile');	
+	qreq({
+		method: 'GET', 
+		uri: process.env.FILESERVER + req.query.filename,
+	    proxy: process.env.HTTP_PROXY
+	})
+	.then( (body) => {
+		res.send('OK');
+	})
+	.fail( (err) => {
+		res.sendStatus(400);
+	});
+	
 });
 
 app.post('/api/media', multipartMiddleware, (req, res) => {
