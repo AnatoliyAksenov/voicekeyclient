@@ -18,29 +18,29 @@
   };
   
   
-  Person.$inject = ['$scope', 'dataAssistant'];
+  Person.$inject = ['$scope', 'dataAssistant',"_"];
 
-  function Person($scope, dataAssistant){
-    $scope.persons = [
-      {
-        shortName: "test",
-        fullName:  "Super test",
-        person_id: "55044",
-        rscode:    "12598",
-        inn:       "7719584389",
-        phoneNumber: "+7(495)345-55-34",
-        url:       "https://rogaandcopita.com",
-        email:     "info@rogaandcopita.com"},
-      {
-        shortName: "test",
-        fullName:  "Super test",
-        person_id: "55044",
-        rscode:    "12598",
-        inn:       "7719584389",
-        phoneNumber: "+7(495)345-55-34",
-        url:       "https://rogaandcopita.com",
-        email:     "info@rogaandcopita.com"}
-    ];
+  function Person($scope, dataAssistant, _){
+    $scope.persons = [];
+    
+    
+    $scope.init = () => {
+      dataAssistant.get('/dbapi/person/findAll')
+      .then( data => {
+        $scope.persons = data.data;
+      })
+    };
+
+    $scope.$parent.socket.on('dbevent', (data) => {
+      
+      if(data.model == 'person'){
+        console.log(data.hook);
+        if(data.hook == 'afterCreate'){
+          $scope.persons.push(data.object);
+          $scope.$digest();
+        }
+      } 
+    });
   }
 
 })();	

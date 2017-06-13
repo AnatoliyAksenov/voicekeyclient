@@ -4,7 +4,9 @@ let express = require('express');
 let http  = require('http');
 let https = require('https');
 
-let fs = require('fs');
+const fs = require('fs');
+const crypto = require("crypto");
+
 let session = require('express-session');
 let cookieParser = require('cookie-parser');
 let multipart = require('connect-multiparty');
@@ -166,13 +168,42 @@ app.all(/\/dbapi\/(\w+)\/?(\w+)?\/?/, function(req, res){
 			
 				let param = req.query[query];  //single parameter sends as a part of query where key is function name and parameter is value
 				let options = req.query['options']? JSON.parse(req.query['options']): undefined;
+				let options1 = req.query['options1']? JSON.parse(req.query['options1']): undefined; //for update function
 				
-				database[model][query](param || options).then(result => {
-					res.json(result);
-				});
+				if(!options1){
+					//find*, create, destroy
+					database[model][query](param || options)
+					.then( result => {
+						debug('  result = ' + s(result));
+						res.json(result);
+					})
+					.catch( error => {
+						debug('  error = ' + error.message);
+						res.sendStatus(400);
+					});
+				} else {
+					//update
+					database[model][query](param || options, options1)
+					.then( result => {
+						debug('  result = ' + s(result));
+						res.json(result);
+					})
+					.catch( error => {
+						debug('  error = ' + error.message);
+						res.sendStatus(400);
+					});
+				}
+
 			} else {
-				database[model].findAll().then(result => {
+				debug('  findAll');
+				database[model].findAll()
+				.then( result => {
+					debug('  findAll result rows count ' + result.length);
 					res.json(result);
+				})
+				.catch( error => {
+					debug('  findAll error = ' + error.message);
+					res.sendStatus(400);
 				});	
 			}
 		} else {
@@ -191,7 +222,7 @@ app.get('/api/internal_number', (req, res) => {
 		debug('  req.session.user_data.internal_number == ' + req.session.user_data.internal_number);
 		res.send(req.session.user_data.internal_number);
 	} else {
-		res.send('');
+		res.sendStatus(400);
 	}
 });
 
@@ -213,17 +244,22 @@ app.post('/api/internal_number', (req, res) => {
 	}
 });
 
-app.get('/api/call', (req, res) => {
-	debug('get /api/call');
+app.post('/api/call', (req, res) => {
+	debug('post /api/call');
 	
-	let id = req.query.caller_id;
-	debug('  req.query.caller_id == ' + req.query.caller_id);
-	
-	emit(id, 'incomingcall', req.query)
+	let id = req.body.param_dnis || 6007;
+	let calluuid = req.body.param_calluuid;
+	let ani = req.body.param_ani;
+
+	debug('  req.body = ' + s(req.body));
+	database.calls.create({calluuid: calluuid, ani: ani, dnis: id})
+	emit(id, 'incomingcall', req.body)
 	.then( data => {
+		debug('  data = ' + s(data));
 		res.send('OK');
 	})
 	.fail( err => {
+		debug('  err = ' + err.message);
 		res.sendStatus(400);
 	});
 
@@ -231,7 +267,7 @@ app.get('/api/call', (req, res) => {
 
 let multipartMiddleware = multipart();
 
-app.all('/api/echo', multipartMiddleware, (req, res) => {
+app.all('/test/echo', multipartMiddleware, (req, res) => {
 	let echo = `
 	/api/echo:req.method = ${req.method }
 	/api/echo:connection.remoteAddress = ${req.connection.remoteAddress}
@@ -245,7 +281,7 @@ app.all('/api/echo', multipartMiddleware, (req, res) => {
 	res.send(echo);
 });
 
-app.get('/api/checkfile', (req, res) => {
+app.get('/test/checkfile', (req, res) => {
 	debug('get /api/checkfile');	
 	qreq({
 		method: 'GET', 
@@ -261,7 +297,9 @@ app.get('/api/checkfile', (req, res) => {
 	
 });
 
-app.post('/api/media', multipartMiddleware, (req, res) => {
+
+//create model from file
+app.post('/api/mediafile', multipartMiddleware, (req, res) => {
 	debug('post /api/media');
 
 	if(req.body && req.files){
@@ -271,9 +309,12 @@ app.post('/api/media', multipartMiddleware, (req, res) => {
 		debug('  req.body == ' + s(req.body));
 		debug('  req.files == ' + s(req.files));
 		debug('  req.files.file == ' + buff.toString('base64').substr(0, 500));
-		const personId = req.body.title;
-		const extension = req.body.extension || 1234;
-		const call_id = req.body.call_id || 1;
+		
+		const model_id = crypto.randomBytes(16).toString("hex");
+		debug('  model_id = ' + model_id);
+
+		const extension = req.body.dnis || 6007;
+		const call_id = req.body.calluuid || '';
 
 		const options = {
 			"extension": extension,
@@ -288,23 +329,24 @@ app.post('/api/media', multipartMiddleware, (req, res) => {
 		};
 		
 		//SAMPLE mode
-		vk.create_model(personId, options, req.session)
+		vk.create_model(model_id, options, req.session)
 		.then( data => {
 			debug('  create_model.data = ' + s(data))
-			vk.training_model(personId, fileOptions, req.session)
+			vk.training_model(model_id, fileOptions, req.session)
 			.then( data => {
 				debug('  training_model.data = ' + s(data));
-				vk.status_model(personId, {}, req.session)
+				vk.status_model(model_id, {}, req.session)
 				.then( data => {
 					debug('  status_model.data = ' + s(data));
 					
 					emit(extension, 'model_status', data);
 					
-					vk.finishing_model(personId, {}, req.session)
+					vk.finishing_model(model_id, {}, req.session)
 					.then( data => {
 						debug('  finishing_model:data = ' + s(data));
-
-						emit(extension, 'model_complete', data);
+						let obj = {data: data};
+						obj.model_id = model_id;
+						emit(extension, 'complete_model', obj);
 
 						res.send('OK');	
 					})
@@ -319,6 +361,88 @@ app.post('/api/media', multipartMiddleware, (req, res) => {
 			res.send(s(err));	
 		});
 		
+		
+	} else {
+		res.sendStatus(400);
+	}
+});
+
+//create model from request resource
+app.post('/api/media', multipartMiddleware, (req, res) => {
+	debug('post /api/media');
+
+	if(req.body){
+		
+		debug('  req.body == ' + s(req.body));
+		debug('  req.files == ' + s(req.files));
+		debug('  req.files.file == ' + buff.toString('base64').substr(0, 500));
+		
+		const model_id = crypto.randomBytes(16).toString("hex");
+		debug('  model_id = ' + model_id);
+
+		const extension = req.body.dnis || 6007;
+		const call_id = req.body.calluuid || '';
+
+		const options = {
+			"extension": extension,
+			"call_id": call_id,
+			"reset_sound": true,
+			"audio_source": "SAMPLE",
+			"split_speakers": false
+		};
+			
+
+		qreq({
+			method: 'GET', 
+			uri: process.env.FILESERVER + call_id + '.wav',
+			proxy: process.env.HTTP_PROXY
+		})
+		.then( body => {
+			
+			debug('  qreq body = ' = body.substr(0, 100));
+
+			let buff = new Buffer(body);
+
+			const fileOptions = {
+			"data": buff.toString('base64')
+			};
+
+			//SAMPLE mode
+			vk.create_model(model_id, options, req.session)
+			.then( data => {
+				debug('  create_model.data = ' + s(data))
+				vk.training_model(model_id, fileOptions, req.session)
+				.then( data => {
+					debug('  training_model.data = ' + s(data));
+					vk.status_model(model_id, {}, req.session)
+					.then( data => {
+						debug('  status_model.data = ' + s(data));
+						
+						emit(extension, 'model_status', data);
+						
+						vk.finishing_model(model_id, {}, req.session)
+						.then( data => {
+							debug('  finishing_model:data = ' + s(data));
+							let obj = {data: data};
+							obj.model_id = model_id;
+							emit(extension, 'complete_model', obj);
+
+							res.send('OK');	
+						})
+						.fail( err => {
+							debug(`  finishing_model:err = ${err.name}:${err.message}`);
+							res.send('FAIL');
+						});
+					});
+				});
+			})
+			.fail( err => {
+				res.send(s(err));	
+			});
+		})	
+		.fail( err => {
+			debug(' qreq fail = ' + err.message);
+		});
 		
 	} else {
 		res.sendStatus(400);
@@ -391,6 +515,20 @@ app.get('/wsapi/:event', (req, res) => {
 	}
 });
 
+app.get('/api/xml', (req, res) => {
+	const jsonxml = require('jsontoxml');
+	const query = JSON.parse(req.query.data);
+
+	let data = [];
+	for(let row in query){
+		data.push({"row": query[row]});
+	}
+	const result = {"data": data};
+	debug('  data = ' + s(result));
+	res.send(jsonxml(result));
+
+})
+
 //WEB Server
 let server = {};
 
@@ -414,6 +552,9 @@ var io = require('socket.io')(server);
 io.use((socket, next) => {
     sessionMiddleware(socket.request, socket.request.res, next);
 });
+
+//map to global
+global.io = io;
 
 io.on('connection', socket => {
 	

@@ -21,6 +21,7 @@
     "cookie-parser": "^1.4.3",
     "express": "^4.15.2",
     "express-session": "^1.15.2",
+    "jsontoxml": "0.0.11",
     "q": "^1.5.0",
     "request": "^2.81.0",
     "sequelize": "^3.30.4",

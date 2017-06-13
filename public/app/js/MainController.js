@@ -27,6 +27,7 @@
 					$('#incomingcall').modal('show');
 				});
 				
+				
 				this.on('listenner:add:response', data => {
 					if(data){
 						if(data == 'OK'){
@@ -75,7 +76,7 @@
 		};
 		
 		$scope.showCallsList = function(){
-			$scope.page = 'speech';
+			$scope.page = 'calls';
 		};
 		
 						

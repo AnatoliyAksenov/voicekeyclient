@@ -1,0 +1,18 @@
+<div ng-init="init()">
+	<table class="table table-bordred table-striped">
+	    <thead>
+	        <tr>
+	            <th class="text-center">ANI</th>
+				<th>calluuid</th>
+				<th>DNIS</th>  
+	        </tr>
+	    </thead>
+	    <tbody>
+	            <tr ng-repeat="call in calls">
+	                <th>{{ call.ani }}</th>
+					<th>{{ call.calluuid }}</th>
+					<th>{{ call.dnis }}</th> 
+	            </tr>
+	    </tbody>        
+	</table>
+</div>

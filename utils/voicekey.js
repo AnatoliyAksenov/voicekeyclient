@@ -174,7 +174,7 @@ let get_persons = function(){
 	let opt = {
 		method: 'GET',
 		uri: global.options.endpoint + 'person',
-		headers: { "X-Session-Id": vk.sessionid }
+		headers: { "X-Session-Id": global.sessionid }
 	};
 		
 	request(opt, function(err, res, body){

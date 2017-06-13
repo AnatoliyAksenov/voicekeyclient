@@ -9,14 +9,24 @@ var sequelize = new Sequelize('reb', '', '', {
 });
 
 let database = {};
-let User = {};
+let debug = require('../utils/index.js').debug;
+
+var dbemit = (model, hook, object, options, cb) =>{
+  debug('model/index.js dbemit');
+  debug('  hook = ' + hook);
+  debug('  object = ' + JSON.stringify(object));
+
+  if(global.io){
+    global.io.sockets.emit('dbevent', {model:model, hook: hook, object: object, options: options});
+  }
+}
 
 sequelize
   .authenticate()
   .then(() => {
       let Person = sequelize.define('person', {
       shortName: { type: Sequelize.STRING },
-      fullName:  { type: Sequelize.STRING  },
+      fullName:  { type: Sequelize.STRING },
       person_id: { type: Sequelize.INTEGER, unique: 'IDX_PERSON_PERSON_ID' },
       rscode:    { type: Sequelize.INTEGER },
       inn:       { type: Sequelize.INTEGER },
@@ -24,7 +34,12 @@ sequelize
       url:         { type: Sequelize.STRING },
       email:       { type: Sequelize.STRING }
     });
-    
+
+    Person.hook('afterCreate', (object, options)=>{
+      debug('person afterCreate hook');
+      dbemit('person','afterCreate', object, options);
+    });
+
     Person.sync();
     database.person = Person;
     
@@ -85,6 +100,20 @@ sequelize
     
     SpeecherModel.sync();
     database.speechermodel = SpeecherModel;
+
+    let Calls = sequelize.define('calls', {
+      calluuid: { type: Sequelize.STRING },
+      ani:      { type: Sequelize.STRING },
+      dnis:     { type: Sequelize.STRING }
+    });
+
+    Calls.sync();
+    Calls.hook('afterCreate', (object, options)=>{
+      debug(' calls afterCreate hook');
+      dbemit('calls','afterCreate', object, options);
+    });
+  
+    database.calls = Calls;
     
   })
   .catch(err => {

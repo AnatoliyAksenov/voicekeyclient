@@ -14,8 +14,7 @@
         for(var key in data)
         str.push(encodeURIComponent(key) + "=" + encodeURIComponent(data[key]));
         return str.join("&");
-  }]
-    
+  }]    
 
     return {
       get:  get,
@@ -32,7 +31,6 @@
     }
 
     function post(url, data, options){
-
       return $http.post(url, data, options);
     }
   }

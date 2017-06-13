@@ -33,15 +33,17 @@
       </div>
       <div class="modal-body">
           <div class="form-group">
-            <label for="phonenumber">Входящий номер</label>
-            <input type="text" class="form-control" id="phonenumber" placeholder="Номер не определен" ng-model="call.phonenumber">
+            <span>Исходящий номер: <em>{{ call.ani }}</em></span><br />
+            <span>Организация: {{ call.shortName }}</span><br />
+            <span>Идентификатор звонка: {{ call.calluuid }}</span>
           </div>
-          <div class="form-group">
-            <label for="callinfo">Информация</label>
-            <input type="text" class="form-control" id="callinfo" placeholder="Информация" ng-model="call.info">
-          </div>
-          <div class="form-group">
+          <div class="form-group" ng-if="call.calluuid">
             <pre>{{ call | json }}</pre>
+          </div>
+          <div class="form-group">
+            <label for="modelling">Создание дескриптора</label>
+            <input type="text" class="form-control" id="modelling" placeholder="Идентификатор клиента в РЕБ" ng-model="call.person_id">
+            <button type="button" id="save_completed" class="btn btn-primary" ng-click="SaveCompletedModel()" ng-class="call.status =='model' ? '': 'disabled'"><i class="fa fa-cog fa-spin fa-fw" ng-if="call.status != 'model'"></i>&nbsp;Ожидание записи</button>
           </div>
       </div>
       <div class="modal-footer">
