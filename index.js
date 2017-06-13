@@ -300,7 +300,7 @@ app.get('/test/checkfile', (req, res) => {
 
 //create model from file
 app.post('/api/mediafile', multipartMiddleware, (req, res) => {
-	debug('post /api/media');
+	debug('post /api/mediafile');
 
 	if(req.body && req.files){
 		
@@ -375,7 +375,6 @@ app.post('/api/media', multipartMiddleware, (req, res) => {
 		
 		debug('  req.body == ' + s(req.body));
 		debug('  req.files == ' + s(req.files));
-		debug('  req.files.file == ' + buff.toString('base64').substr(0, 500));
 		
 		const model_id = crypto.randomBytes(16).toString("hex");
 		debug('  model_id = ' + model_id);
@@ -399,7 +398,7 @@ app.post('/api/media', multipartMiddleware, (req, res) => {
 		})
 		.then( body => {
 			
-			debug('  qreq body = ' = body.substr(0, 100));
+			debug('  qreq body = ' + body.substr(0, 100));
 
 			let buff = new Buffer(body);
 
@@ -430,18 +429,26 @@ app.post('/api/media', multipartMiddleware, (req, res) => {
 							res.send('OK');	
 						})
 						.fail( err => {
-							debug(`  finishing_model:err = ${err.name}:${err.message}`);
+							debug(`  finishing_model:err = ${err.code}:${err.name}:${err.message}`);
 							res.send('FAIL');
 						});
 					});
+				})
+				.fail( err => {
+					debug('  training_model fail');
+					debug(`  finishing_model:err = ${err.code}:${err.name}:${err.message}`);
+					res.sendStatus(400);
 				});
 			})
 			.fail( err => {
-				res.send(s(err));	
+				debug('  create_model fail. ');
+				debug(`  finishing_model:err = ${err.code}:${err.name}:${err.message}`);
+				res.sendStatus(400);	
 			});
 		})	
 		.fail( err => {
 			debug(' qreq fail = ' + err.message);
+			res.sendStatus(400);
 		});
 		
 	} else {

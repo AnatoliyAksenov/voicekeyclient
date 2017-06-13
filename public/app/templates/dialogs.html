@@ -37,13 +37,25 @@
             <span>Организация: {{ call.shortName }}</span><br />
             <span>Идентификатор звонка: {{ call.calluuid }}</span>
           </div>
+          <!--
           <div class="form-group" ng-if="call.calluuid">
             <pre>{{ call | json }}</pre>
           </div>
+          -->
           <div class="form-group">
-            <label for="modelling">Создание дескриптора</label>
-            <input type="text" class="form-control" id="modelling" placeholder="Идентификатор клиента в РЕБ" ng-model="call.person_id">
-            <button type="button" id="save_completed" class="btn btn-primary" ng-click="SaveCompletedModel()" ng-class="call.status =='model' ? '': 'disabled'"><i class="fa fa-cog fa-spin fa-fw" ng-if="call.status != 'model'"></i>&nbsp;Ожидание записи</button>
+            <p>Для создания дескриптора, дождитесь разблокировки кнопки и нажмите "Создать дескриптор"</p>
+            <label for="personid">Идентификатор РЕБ</label>            
+            <input type="text" class="form-control" id="personid" placeholder="Идентификатор клиента в РЕБ" ng-model="call.person_id"><br />
+            
+            <label for="speechername">ФИО звонящего</label>            
+            <input type="text" class="form-control" id="speechername" placeholder="ФИО звонящего" ng-model="call.speecher_name"><br />
+
+            <label for="speecherole">Должность звонящего</label>            
+            <input type="text" class="form-control" id="speecherole" placeholder="ФИО звонящего" ng-model="call.speecher_role"><br />
+
+            <p>
+             <button type="button" id="save_completed" class="btn btn-primary" ng-click="SaveCompletedModel()" ng-class="call.status =='model' ? '': 'disabled'"><i class="fa fa-cog fa-spin fa-fw" ng-if="call.status != 'model'"></i>&nbsp;Ожидание записи</button>
+            </p> 
           </div>
       </div>
       <div class="modal-footer">

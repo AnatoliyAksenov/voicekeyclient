@@ -72,7 +72,7 @@
       $scope.call.status = 'model';
       $scope.call.model_id = data.model_id;
       $scope.$digest;
-			$('#save_completed').text('Создать');
+			$('#save_completed').text('Создать дескриптор');
 				
     });
   }

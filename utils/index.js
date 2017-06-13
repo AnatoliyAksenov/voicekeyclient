@@ -16,13 +16,25 @@ module.exports.debug = debug;
 let qreq = function(options){
     var deferred = q.defer();
 
-    request(options, (err, req, body) => {
+    debug('utils/index.js qreq');
+    debug('  options = ' + JSON.stringify(options));
+
+    request(options, (err, response, body) => {
         debug('request ' + options.url);
         if(!err){
+            
             debug('  body = ' + body.substring(0,500));
-            deferred.resolve(body);
+            debug('  response.statusCode = ' + response.statusCode);
+            if (response.statusCode == 200){
+                deferred.resolve(body);
+            } else {
+                debug('  statusCode = ' + response.statusCode);
+                debug('  body = ' + body.substring(0, 100));
+                deferred.reject(new Error('Status code not equal 200. StatusCode = ' + response.statusCode));
+            }
+            
         } else {
-            debug('  error = '+ err.message);
+            debug('  error = ' + err.message);
             deferred.reject(err.message)
         }
     });
