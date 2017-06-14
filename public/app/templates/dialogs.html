@@ -52,7 +52,8 @@
 
             <label for="speecherole">Должность звонящего</label>            
             <input type="text" class="form-control" id="speecherole" placeholder="ФИО звонящего" ng-model="call.speecher_role"><br />
-
+            <p ng-if="call.message"><span>Информация: {{ call.message }}</span></p>
+            <p ng-if="call.error"><span>Ошибка: {{ call.error }}</span></p>
             <p>
              <button type="button" id="save_completed" class="btn btn-primary" ng-click="SaveCompletedModel()" ng-class="call.status =='model' ? '': 'disabled'"><i class="fa fa-cog fa-spin fa-fw" ng-if="call.status != 'model'"></i>&nbsp;Ожидание записи</button>
             </p> 

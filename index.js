@@ -340,7 +340,7 @@ app.post('/api/mediafile', multipartMiddleware, (req, res) => {
 				.then( data => {
 					debug('  status_model.data = ' + s(data));
 					
-					emit(extension, 'model_status', data);
+					emit(extension, 'status_model', data);
 					
 					vk.finishing_model(model_id, {}, req.session)
 					.then( data => {
@@ -353,9 +353,20 @@ app.post('/api/mediafile', multipartMiddleware, (req, res) => {
 					})
 					.fail( err => {
 						debug(`  finishing_model:err = ${err.name}:${err.message}`);
+						emit(extension, 'error_model', err);
 						res.send('FAIL');
 					});
+				})
+				.fail( err => {
+					debug(`  status_model:err = ${err.name}:${err.message}`);
+					emit(extension, 'error_model', err);
+					res.send('FAIL');
 				});
+			})
+			.fail( err => {
+				debug(`  training_model:err = ${err.name}:${err.message}`);
+				emit(extension, 'error_model', err);
+				res.send('FAIL');
 			});
 		})
 		.fail( err => {
@@ -411,14 +422,16 @@ app.post('/api/media', multipartMiddleware, (req, res) => {
 			vk.create_model(model_id, options, req.session)
 			.then( data => {
 				debug('  create_model.data = ' + s(data))
+				
 				vk.training_model(model_id, fileOptions, req.session)
 				.then( data => {
 					debug('  training_model.data = ' + s(data));
+					
 					vk.status_model(model_id, {}, req.session)
 					.then( data => {
 						debug('  status_model.data = ' + s(data));
 						
-						emit(extension, 'model_status', data);
+						emit(extension, 'status_model', data);
 						
 						vk.finishing_model(model_id, {}, req.session)
 						.then( data => {
@@ -438,12 +451,14 @@ app.post('/api/media', multipartMiddleware, (req, res) => {
 				.fail( err => {
 					debug('  training_model fail');
 					debug(`  finishing_model:err = ${err.code}:${err.name}:${err.message}`);
+					emit(extension, 'error_model', err);
 					res.sendStatus(400);
 				});
 			})
 			.fail( err => {
 				debug('  create_model fail. ');
 				debug(`  finishing_model:err = ${err.code}:${err.name}:${err.message}`);
+				emit(extension, 'error_model', err);
 				res.sendStatus(400);	
 			});
 		})	

@@ -76,6 +76,23 @@
 			$('#save_completed').text('Создать дескриптор');
 				
     });
+
+    $scope.$parent.socket.on('status_model', data => {
+      $scope.call.status = '';
+      $scope.call.model_id = undefined;
+      $scope.call.message = data;
+      $scope.$digest;				
+    });
+
+    $scope.$parent.socket.on('status_model', data => {
+      $scope.call.status = 'error';
+      $scope.call.model_id = undefined;
+      $scope.call.error = data.message;
+      $scope.$digest;
+			$('#save_completed').addClass('hide');
+				
+    });
+
   }
 
   Link.$inject = ['$scope', '$element'];
