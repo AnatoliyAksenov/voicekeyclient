@@ -7,9 +7,10 @@ let https = require('https');
 const fs = require('fs');
 const crypto = require("crypto");
 
-let session = require('express-session');
+//let session = require('express-session');
 let cookieParser = require('cookie-parser');
 let multipart = require('connect-multiparty');
+let cookieSession = require('cookie-session');
 
 let q = require('q');
 
@@ -63,7 +64,7 @@ let https_port = process.env.HTTPS_PORT || 443;
 app.use(cookieParser());
 app.use(require('body-parser').urlencoded({ extended: true }));
 
-let sessionMiddleware = session({
+let sessionMiddleware = cookieSession({
     //store: new redis({}),
     saveUninitialized: true,
     resave: true,
@@ -247,7 +248,7 @@ app.post('/api/internal_number', (req, res) => {
 app.post('/api/call', (req, res) => {
 	debug('post /api/call');
 	
-	let id = req.body.param_dnis || 6007;
+	let id = req.body.param_input || 6007;
 	let calluuid = req.body.param_calluuid;
 	let ani = req.body.param_ani;
 
@@ -308,12 +309,12 @@ app.post('/api/mediafile', multipartMiddleware, (req, res) => {
 		let buff = new Buffer(fileContent, 'binary');
 		debug('  req.body == ' + s(req.body));
 		debug('  req.files == ' + s(req.files));
-		debug('  req.files.file == ' + buff.toString('base64').substr(0, 500));
+		debug('  req.files.file == ' + buff.toString('base64').substr(0, 100));
 		
 		const model_id = crypto.randomBytes(16).toString("hex");
 		debug('  model_id = ' + model_id);
 
-		const extension = req.body.dnis || 6007;
+		const extension = req.body.param_input || 6007;
 		const call_id = req.body.calluuid || '';
 
 		const options = {
@@ -379,8 +380,9 @@ app.post('/api/media', multipartMiddleware, (req, res) => {
 		const model_id = crypto.randomBytes(16).toString("hex");
 		debug('  model_id = ' + model_id);
 
-		const extension = req.body.dnis || 6007;
-		const call_id = req.body.calluuid || '';
+		const extension = req.body.param_input || 6007;
+		const call_id = req.body.param_calluuid || '';
+		const ani     = req.body.param_ani;
 
 		const options = {
 			"extension": extension,
@@ -394,16 +396,15 @@ app.post('/api/media', multipartMiddleware, (req, res) => {
 		qreq({
 			method: 'GET', 
 			uri: process.env.FILESERVER + call_id + '.wav',
+			encoding: null,
 			proxy: process.env.HTTP_PROXY
 		})
 		.then( body => {
 			
 			debug('  qreq body = ' + body.substr(0, 100));
 
-			let buff = new Buffer(body);
-
 			const fileOptions = {
-			"data": buff.toString('base64')
+			  "data": body 
 			};
 
 			//SAMPLE mode

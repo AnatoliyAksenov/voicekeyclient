@@ -118,7 +118,9 @@ let training_model = function(param, options, session){
 	var deferred = q.defer();
 	
 	let personId = param;
-	
+	let data = options.data;
+	debug('  options.data = ' + data.substr(0, 100));
+
 	if(!global.options){
 		debug('  options = undefined');
 	    deferred.reject( new Error('VoiceKey module not initialized.'));
@@ -145,12 +147,11 @@ let training_model = function(param, options, session){
 			"X-Transaction-id": session.user_data.transaction
 		},
 		body: { 
-			"data": options.data 
+			"data": data 
 		},
 		json: true
 	};
 	
-	//debug('  opt = ' + s(opt));
 	debug('  session = ' + s(session));
 		
 	request(opt, function(err, res, body){
@@ -185,7 +186,7 @@ let finishing_model = function(param, options, session){
 		return deferred.promise;
 	}	
 	
-	debug('  vk.options = ' + s(global.options));
+	debug('  global.options = ' + s(global.options));
 	
 	if(!global.sessionid){
 		debug('  session = undefined');

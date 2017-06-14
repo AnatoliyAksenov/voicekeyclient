@@ -30,6 +30,7 @@
 			  //if OK init saving socket object on server side
 			  $scope.$parent.socket.emit('listenner:add', $scope.internalnumber, function(){
 			    console.log('eimt listenner:add');
+          //$cookies.put('internalnumber', $scope.internalnumber);
 			  });
 			  
 			}, function(error){

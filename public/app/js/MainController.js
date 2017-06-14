@@ -13,6 +13,17 @@
 		$scope.status = {message: 'disconnected'};
 		
 		$scope.init = function(){
+
+			//var internal_number = $cookies.get('internalnumber');
+
+			// if(internal_number){
+			// 	dataAssistant.get('/api/internal_number')
+			// 	.then( data => {
+			// 		console.log('Internal number from session ' + data.data);
+			// 		console.log('Internal number from cookies ' + internal_number);
+			// 	});
+			// }
+			
 		
 			$scope.socket = socketUtils.socket;
 			

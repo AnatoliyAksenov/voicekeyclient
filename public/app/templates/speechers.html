@@ -1,0 +1,26 @@
+<div ng-init="init()">
+	<table class="table table-bordred table-striped">
+	    <thead>
+	        <tr>
+	            <th class="text-center">shortName</th>
+				<th>person_id</th>
+				<th>rscode</th>
+				<th>inn</th>
+				<th>phoneNumber</th>
+				<th>url</th>
+				<th>email</th>   
+	        </tr>
+	    </thead>
+	    <tbody>
+	            <tr ng-repeat="person in persons">
+	                <th>{{ person.shortName }}</th>
+					<th>{{ person.person_id }}</th>
+					<th>{{ person.rscode }}</th>
+					<th>{{ person.inn }}</th>
+					<th>{{ person.phoneNumber }}</th>
+					<th>{{ person.url }}</th>
+					<th>{{ person.email }}</th>   
+	            </tr>
+	    </tbody>        
+	</table>
+</div>

@@ -19,14 +19,16 @@ let qreq = function(options){
     debug('utils/index.js qreq');
     debug('  options = ' + JSON.stringify(options));
 
+    options.encoding = null;
     request(options, (err, response, body) => {
         debug('request ' + options.url);
         if(!err){
             
-            debug('  body = ' + body.substring(0,500));
             debug('  response.statusCode = ' + response.statusCode);
             if (response.statusCode == 200){
-                deferred.resolve(body);
+	        debug('  body = ' + body.toString('base64').substring(0, 200));
+
+                deferred.resolve(body.toString('base64'));
             } else {
                 debug('  statusCode = ' + response.statusCode);
                 debug('  body = ' + body.substring(0, 100));
