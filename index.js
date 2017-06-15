@@ -330,47 +330,18 @@ app.post('/api/mediafile', multipartMiddleware, (req, res) => {
 		};
 		
 		//SAMPLE mode
-		vk.create_model(model_id, options, req.session)
+		vk.new_model(model_id, options, fileOptions, req.session)
+		.progress( data => {
+			debug(data.status);
+			emit(extension, data.status, data.data);
+		})
 		.then( data => {
-			debug('  create_model.data = ' + s(data))
-			vk.training_model(model_id, fileOptions, req.session)
-			.then( data => {
-				debug('  training_model.data = ' + s(data));
-				vk.status_model(model_id, {}, req.session)
-				.then( data => {
-					debug('  status_model.data = ' + s(data));
-					
-					emit(extension, 'status_model', data);
-					
-					vk.finishing_model(model_id, {}, req.session)
-					.then( data => {
-						debug('  finishing_model:data = ' + s(data));
-						let obj = {data: data};
-						obj.model_id = model_id;
-						emit(extension, 'complete_model', obj);
-
-						res.send('OK');	
-					})
-					.fail( err => {
-						debug(`  finishing_model:err = ${err.name}:${err.message}`);
-						emit(extension, 'error_model', err);
-						res.send('FAIL');
-					});
-				})
-				.fail( err => {
-					debug(`  status_model:err = ${err.name}:${err.message}`);
-					emit(extension, 'error_model', err);
-					res.send('FAIL');
-				});
-			})
-			.fail( err => {
-				debug(`  training_model:err = ${err.name}:${err.message}`);
-				emit(extension, 'error_model', err);
-				res.send('FAIL');
-			});
+			debug('  new_model.data = ' + s(data));
+			res.send(data);
 		})
 		.fail( err => {
-			res.send(s(err));	
+			debug(`  new_model.fail = ${err.code}:${err.name}:${err.message}`);
+			res.sendStatus(400);
 		});
 		
 		

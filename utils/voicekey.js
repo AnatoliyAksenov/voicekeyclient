@@ -269,6 +269,72 @@ vk.training_model = sample_mode.training_model;
 vk.status_model = sample_mode.status_model;
 vk.create_model = sample_mode.create_model;
 
+var new_model = function(model_id, options, fileOptions, session) {
+	var deferred = q.defer();
+
+		vk.create_model(model_id, options, session)
+		.then( data => {
+			debug('  create_model.data = ' + s(data))
+			vk.training_model(model_id, fileOptions, session)
+			.then( data => {
+				debug('  training_model.data = ' + s(data));
+				vk.status_model(model_id, {}, session)
+				.then( data => {
+					debug('  status_model.data = ' + s(data));
+					
+					//emit(extension, 'status_model', data);
+					deferred.notify({status: 'status_model', data: data});
+
+					vk.finishing_model(model_id, {}, session)
+					.then( data => {
+						debug('  finishing_model:data = ' + s(data));
+						let obj = {data: data};
+						obj.model_id = model_id;
+						//emit(extension, 'complete_model', obj);
+						deferred.notify({status: 'complete_model', data: obj});
+
+						//res.send('OK');	
+						deferred.resolve('OK');
+					})
+					.fail( err => {
+						debug(`  finishing_model:err = ${err.name}:${err.message}`);
+						//emit(extension, 'error_model', err);
+						deferred.notify({status: 'error_model', data: err });
+
+						//res.send('FAIL');
+						deferred.reject('FAIL');
+					});
+				})
+				.fail( err => {
+					debug(`  status_model:err = ${err.name}:${err.message}`);
+					//emit(extension, 'error_model', err);
+					deferred.notify({status: 'error_model', data: err });
+
+					//res.send('FAIL');
+					deferred.reject('FAIL');
+				});
+			})
+			.fail( err => {
+				debug(`  training_model:err = ${err.name}:${err.message}`);
+				//emit(extension, 'error_model', err);
+				deferred.notify({status: 'error_model', data: err });
+
+				//res.send('FAIL');
+				deferred.reject('FAIL');
+			});
+		})
+		.fail( err => {
+			debug(`  create_model:err = ${err.name}:${err.code}:${err.message}`);
+			deferred.notify({status: 'error_model', data: err });
+
+			//res.send(s(err));	
+			deferred.reject('FAIL');
+		});
+	return deferred.promise;	
+}
+vk.new_model = new_model;
+
+
 //TELEPHONY mode
 let telephony_mode = require('./voicekey.telephony.js');
 vk.t_get_test_model = telephony_mode.get_test_model;
