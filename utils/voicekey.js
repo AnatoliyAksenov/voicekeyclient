@@ -334,6 +334,60 @@ var new_model = function(model_id, options, fileOptions, session) {
 }
 vk.new_model = new_model;
 
+var new_test_model = function(model_id, options, fileOptions, session){
+    var deferred = q.defer();
+
+	let personId = model_id;
+
+	vk.init_test_model(personId, options, session)
+		.then( data => {
+			debug('  init_test_model.data = ' + s(data));
+
+			//emit(extension, 'init_test_model', data);
+			deferred.notify({status: 'init_test_model', data: data});
+
+			vk.test_model(personId, fileOptions, session)
+			.then( data => {
+				debug('  test_model.data = ' + s(data));
+				
+				deferred.notify({status: 'test_model', data: data});
+
+				vk.get_test_model(personId, {}, session)
+				.then( data => {
+					debug('  get_test_model.data = ' + s(data));
+
+					if(data.score < 99) {
+						//TODO: Search in group 201
+					}
+
+					//emit(extension, 'test_model', data);
+					deferred.notify({status: 'get_test_model', data: data});
+
+					//res.json(data);
+					deferred.resolve(data);
+				})
+				.fail( err => {
+					debug(`  get_test_model.err = ${err.code}:${err.name}:${err.message}`);
+					deferred.notify({status: 'error_test_model', data: err});
+					deferred.reject(err);
+				});
+			})
+			.fail( err => {
+				debug(`  get_test_model.err = ${err.code}:${err.name}:${err.message}`);
+				deferred.notify({status: 'error_test_model', data: err});
+				deferred.reject(err);
+			});
+		})
+		.fail( err => {
+			debug(`  get_test_model.err = ${err.code}:${err.name}:${err.message}`);
+			deferred.notify({status: 'error_test_model', data: err});
+			//res.send(err);				
+			deferred.reject(err);
+		});
+
+	return deferred.promise;	
+}
+vk.new_test_model = new_test_model;
 
 //TELEPHONY mode
 let telephony_mode = require('./voicekey.telephony.js');

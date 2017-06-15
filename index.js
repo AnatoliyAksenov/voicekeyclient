@@ -342,8 +342,7 @@ app.post('/api/mediafile', multipartMiddleware, (req, res) => {
 		.fail( err => {
 			debug(`  new_model.fail = ${err.code}:${err.name}:${err.message}`);
 			res.sendStatus(400);
-		});
-		
+		});		
 		
 	} else {
 		res.sendStatus(400);
@@ -389,49 +388,73 @@ app.post('/api/media', multipartMiddleware, (req, res) => {
 			  "data": body 
 			};
 
-			//SAMPLE mode
-			vk.create_model(model_id, options, req.session)
-			.then( data => {
-				debug('  create_model.data = ' + s(data))
+			vk.new_test_model(personId, options, fileOptions, req.session)
+			.progress( data => {
+				debug(data.status);
+				emit(extension, data.status, data.data);
+			}).then( data => {
+				debug('  new_test_model.data = ' + s(data));
 				
-				vk.training_model(model_id, fileOptions, req.session)
-				.then( data => {
-					debug('  training_model.data = ' + s(data));
-					
-					vk.status_model(model_id, {}, req.session)
-					.then( data => {
-						debug('  status_model.data = ' + s(data));
-						
-						emit(extension, 'status_model', data);
-						
-						vk.finishing_model(model_id, {}, req.session)
-						.then( data => {
-							debug('  finishing_model:data = ' + s(data));
-							let obj = {data: data};
-							obj.model_id = model_id;
-							emit(extension, 'complete_model', obj);
+				// Checking score
+				if(data.score < 99){
 
-							res.send('OK');	
+					vk.create_model(model_id, options, req.session)
+					.then( data => {
+						debug('  create_model.data = ' + s(data))
+						
+						vk.training_model(model_id, fileOptions, req.session)
+						.then( data => {
+							debug('  training_model.data = ' + s(data));
+							
+							vk.status_model(model_id, {}, req.session)
+							.then( data => {
+								debug('  status_model.data = ' + s(data));
+								
+								emit(extension, 'status_model', data);
+								
+								vk.finishing_model(model_id, {}, req.session)
+								.then( data => {
+									debug('  finishing_model:data = ' + s(data));
+									let obj = {data: data};
+									obj.model_id = model_id;
+									emit(extension, 'complete_model', obj);
+
+									res.send('OK');	
+								})
+								.fail( err => {
+									debug(`  finishing_model:err = ${err.code}:${err.name}:${err.message}`);
+									res.send('FAIL');
+								});
+							});
 						})
 						.fail( err => {
+							debug('  training_model fail');
 							debug(`  finishing_model:err = ${err.code}:${err.name}:${err.message}`);
-							res.send('FAIL');
+							emit(extension, 'error_model', err);
+							res.sendStatus(400);
 						});
+					})
+					.fail( err => {
+						debug('  create_model fail. ');
+						debug(`  finishing_model:err = ${err.code}:${err.name}:${err.message}`);
+						emit(extension, 'error_model', err);
+						res.sendStatus(400);	
 					});
-				})
-				.fail( err => {
-					debug('  training_model fail');
-					debug(`  finishing_model:err = ${err.code}:${err.name}:${err.message}`);
-					emit(extension, 'error_model', err);
-					res.sendStatus(400);
-				});
+				} else {
+					// Here we can update or enrich finded profile
+					res.send(data);
+				}
+
+
+
 			})
 			.fail( err => {
-				debug('  create_model fail. ');
-				debug(`  finishing_model:err = ${err.code}:${err.name}:${err.message}`);
-				emit(extension, 'error_model', err);
-				res.sendStatus(400);	
-			});
+				debug(`  new_test_model.fail = ${err.code}:${err.name}:${err.message}`);
+				res.sendStatus(400);
+			});	
+
+			//SAMPLE mode
+			
 		})	
 		.fail( err => {
 			debug(' qreq fail = ' + err.message);
@@ -443,8 +466,8 @@ app.post('/api/media', multipartMiddleware, (req, res) => {
 	}
 });
 
-app.post('/api/test', multipartMiddleware, (req, res) => {
-	debug('post /api/test');
+app.post('/api/testfile', multipartMiddleware, (req, res) => {
+	debug('post /api/testfile');
 	if(req.body && req.files){
 		let fileContent = fs.readFileSync(req.files.file.path, 'binary');
 		let buff = new Buffer(fileContent, 'binary');
@@ -469,28 +492,20 @@ app.post('/api/test', multipartMiddleware, (req, res) => {
 		};
 		
 		//SAMPLE mode
-		vk.init_test_model(personId, options, req.session)
-		.then( data => {
-			debug('  init_test_model.data = ' + s(data));
-
-			emit(extension, 'init_test_model', data);
-
-			vk.test_model(personId, fileOptions, req.session)
-			.then( data => {
-				debug('  test_model.data = ' + s(data));
-				vk.get_test_model(personId, {}, req.session)
-				.then( data => {
-					debug('  get_test_model.data = ' + s(data));
-
-					emit(extension, 'test_model', data);
-
-					res.json(data);
-				});
-			});
+		vk.new_test_model(personId, options, fileOptions, req.session)
+		.progress( data => {
+			debug(data.status);
+			emit(extension, data.status, data.data);
+		}).then( data => {
+			debug('  new_test_model.data = ' + s(data));
+			res.send(data);
 		})
 		.fail( err => {
-			res.send(err);	
-		});
+			debug(`  new_test_model.fail = ${err.code}:${err.name}:${err.message}`);
+			res.sendStatus(400);
+		});	
+	} else {
+		res.sendStatus(400);
 	}
 });
 
