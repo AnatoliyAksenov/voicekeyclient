@@ -509,6 +509,45 @@ app.post('/api/testfile', multipartMiddleware, (req, res) => {
 	}
 });
 
+app.post('/api/mediatelephony', (req, res) => {
+	if(req.body){
+		
+		debug('  req.body == ' + s(req.body));
+		
+		const model_id = crypto.randomBytes(16).toString("hex");
+		debug('  model_id = ' + model_id);
+
+		const extension = req.body.param_input || 6007;
+		const call_id = req.body.param_calluuid || '';
+		const ani     = req.body.param_ani;
+
+		const options = {
+			"extension": extension,
+			"call_id": call_id,
+			"reset_sound": true,
+			"audio_source": "TELEPHONY",
+			"split_speakers": false
+		};
+		vk.t_create_model(model_id, options, req.session)
+		.then( data => {
+			debug('  create_model.data = ' + s(data));
+			vk.t_status_model(model_id, options, req.session)
+			.then( data => {
+				res.send(data);
+			})
+			.fail( err => {
+				res.send(err.message);
+			});
+		})
+		.fail( err => {
+
+		});
+
+	} else {
+		res.sendStatus(400);
+	}
+});
+
 // WebSocket api
 app.get('/wsapi/:event', (req, res) => {
 	debug('get /wsapi/');

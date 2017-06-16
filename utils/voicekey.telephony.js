@@ -46,7 +46,7 @@ let create_model = function(param, options, session){
 			debug('  res = ' + s(res));
 			let obj, element_id;
 			try{
-				obj = JSON.parse(body);
+				obj = body;
 				element_id = obj.element_id;
 			} catch (e) {
 				debug('  catch:body = ' + s(body));
