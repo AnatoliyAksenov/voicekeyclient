@@ -257,6 +257,36 @@ app.post('/api/call', (req, res) => {
 	emit(id, 'incomingcall', req.body)
 	.then( data => {
 		debug('  data = ' + s(data));
+		//initial session
+		
+		const model_id = crypto.randomBytes(16).toString("hex");
+		debug('  model_id = ' + model_id);
+
+		const extension = req.body.param_input || 6007;
+		const call_id = req.body.calluuid || '';
+
+		const options = {
+			"extension": extension,
+			"call_id": call_id,
+			"reset_sound": true,
+			"audio_source": "SAMPLE",
+			"split_speakers": false
+		};
+		vk.t_test_model(model_id, options, req.session)
+		.progress( data => {
+			debug('  t_test_model.progress = '+ s(data));
+		})
+		.then( data => {
+			debug('  t_test_model.data = ' + s(data));
+			res.send(data);
+
+		})
+		.fail( err => {
+			debug('  t_test_model.err = ' + s(err));
+			res.send(401);
+		});
+
+
 		res.send('OK');
 	})
 	.fail( err => {

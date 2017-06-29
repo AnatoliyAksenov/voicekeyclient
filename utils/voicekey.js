@@ -398,5 +398,75 @@ vk.t_finishing_model = telephony_mode.finishing_model;
 vk.t_training_model = telephony_mode.training_model;
 vk.t_status_model = telephony_mode.status_model;
 vk.t_create_model = telephony_mode.create_model;
+vk.t_identify_model = telephony_mode.identify_model;
+
+
+var t_test_model = function(model_id, options, session){
+	debug('t_test_model');
+    var deferred = q.defer();
+
+	let personId = model_id;
+
+	vk.t_init_test_model(personId, options, session)
+		.then( data => {
+			debug('  t_init_test_model.data = ' + s(data));
+
+			//emit(extension, 'init_test_model', data);
+			deferred.notify({status: 'init_test_model', data: data});
+
+			vk.t_test_model(personId, session)
+			.then( data => {
+				debug('  t_test_model.data = ' + s(data));
+				
+				deferred.notify({status: 'test_model', data: data});
+
+				vk.t_get_test_model(personId, {}, session)
+				.then( data => {
+					debug('  get_test_model.data = ' + s(data));
+
+					if(data.score < 99) {
+						//Search in group 201
+						vk.t_identify_model(personId, options, session)
+						.then( data => {
+							deferred.notify({status: 'get_test_model', data: data});
+							deferred.resolve(data);
+						})
+						.fail( err => {
+							deferred.notify({status: 'error_test_model', data: err});
+						});
+
+					} else {
+
+						//emit(extension, 'test_model', data);
+						deferred.notify({status: 'get_test_model', data: data});
+
+						//res.json(data);
+						deferred.resolve(data);
+					}
+				})
+				.fail( err => {
+					debug(`  get_test_model.err = ${err.code}:${err.name}:${err.message}`);
+					deferred.notify({status: 'error_test_model', data: err});
+					deferred.reject(err);
+				});
+			})
+			.fail( err => {
+				debug(`  get_test_model.err = ${err.code}:${err.name}:${err.message}`);
+				deferred.notify({status: 'error_test_model', data: err});
+				deferred.reject(err);
+			});
+		})
+		.fail( err => {
+			debug(`  get_test_model.err = ${err.code}:${err.name}:${err.message}`);
+			deferred.notify({status: 'error_test_model', data: err});
+			//res.send(err);				
+			deferred.reject(err);
+		});
+
+	return deferred.promise;	
+}
+vk.new_test_model = new_test_model;
+
+
 
 module.exports = vk;

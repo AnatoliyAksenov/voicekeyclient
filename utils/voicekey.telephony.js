@@ -110,6 +110,8 @@ let status_model = function(param, options, session){
 }
 module.exports.status_model = status_model;
 
+
+/* DEPRECATED */
 let training_model = function(param, options, session){
 	debug('voicekey.telephony.js training_model');
 	var deferred = q.defer();
@@ -136,7 +138,7 @@ let training_model = function(param, options, session){
 		
 	let opt = {
 		method: 'PUT',
-		uri: global.options.endpoint + `person/${personId}/model/sound`,
+		uri: global.options.endpoint + `person/${personId}/model`,
 		headers: {
 			"X-Session-Id": global.sessionid,
 			"X-Transaction-id": session.user_data.transaction
@@ -165,7 +167,7 @@ let training_model = function(param, options, session){
 	
 	return deferred.promise;	
 }
-module.exports.training_model = training_model;
+//module.exports.training_model = training_model;
 
 let finishing_model = function(param, options, session){
 	debug('voicekey.telephony.js finishing_model');
@@ -270,16 +272,6 @@ let init_test_model = function(param, options, session){
 			}
 			
 			debug('  res = ' + s(res));
-			// let obj, element_id;
-			// try{
-			// 	obj = JSON.parse(body);
-			// 	element_id = obj.element_id;
-			// } catch (e) {
-			// 	debug('  catch:body = ' + s(body));
-			// 	debug(`  catch:e = ${e.name}:${e.message}`);
-			// }
-			
-			// session.user_data.element_id = element_id;
 			
 			deferred.resolve(body);
 		} else {
@@ -317,7 +309,7 @@ let test_model = function(param, options, session){
 		
 	let opt = {
 		method: 'PUT',
-		uri: global.options.endpoint + `person/${personId}/authentication/sound`,
+		uri: global.options.endpoint + `person/${personId}/authentication`,
 		headers: {
 			"X-Session-Id": global.sessionid,
 			"X-Transaction-id": session.user_data.inittransaction
@@ -403,3 +395,64 @@ let get_test_model = function(param, options, session){
 	return deferred.promise;	
 }
 module.exports.get_test_model = get_test_model;
+
+///person/{person_id}/identification
+let identify_model = function(param, options, session){
+	debug('voicekey.telephony.js identify_model');
+	var deferred = q.defer();
+	
+	let personId = param;
+	
+	if(!global.options){
+		debug('  options = undefined');
+	    deferred.reject( new Error('VoiceKey module not initialized.'));
+		return deferred.promise;
+	}	
+	
+	if(!global.sessionid){
+		debug('  session = undefined');
+	    deferred.reject( new Error('Header x-session-id undefined'));
+		return deferred.promise;
+	}
+	
+	if(!session && !session.user_data && !session.user_data.inittransaction){
+		debug('  transaction = undefined');
+	    deferred.reject( new Error('Header x-transaction-id undefined'));
+		return deferred.promise;
+	}
+		
+	let opt = {
+		method: 'POST',
+		uri: global.options.endpoint + `person/${personId}/identification`,
+		headers: {
+			"X-Session-Id": global.sessionid,
+			"X-Transaction-id": session.user_data.inittransaction
+		},
+		body: {
+			"group_id": 201,
+   			"score": 0.9,
+   			"top": 3
+		},
+		json: true
+	};
+	
+	debug('  session = ' + s(session));
+		
+	request(opt, function(err, res, body){
+	    if(!err){
+	    	debug('  res.headers = ' + s(res.headers));
+	    	debug('  body = ' + s(body));
+	    	debug('  res = ' + s(res));
+	    	
+	    	//delete session.user_data.inittransaction;
+			
+			deferred.resolve(body);
+		} else {
+			debug('  err = ' + s(err));
+			deferred.reject(err);
+		}
+	});	
+	
+	return deferred.promise;	
+}
+module.exports.identify_model = identify_model;
